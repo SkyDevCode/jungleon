@@ -1,0 +1,5 @@
+/*!
+ * 
+ * Product name/Version: SynapDocumentViewer 2019.19.12.1
+ * 
+ */@media print{#header,#page-controlbar,#thumbnail,#thumbnailbar{display:none!important}body{-webkit-print-color-adjust:exact;color-adjust:exact;background-color:#fff}#container,#contents,#wrap{overflow:visible;display:block;position:static;background-color:#fff}}

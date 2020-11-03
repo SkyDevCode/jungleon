@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<item>
+		<code>1</code>
+		<value>POPUPZONE</value>
+		<name>팝업존</name>
+	</item>
+	<item>
+		<code>2</code>
+		<value>POPUPWIN</value>
+		<name>팝업창</name>
+	</item>
+	<item>
+		<code>3</code>
+		<value>BANNER</value>
+		<name>배너</name>
+	</item>
+	<!--
+	<item>
+		<code>4</code>
+		<value>QUICK</value>
+		<name>퀵메뉴</name>
+	</item>
+	 <item>
+		<code>5</code>
+		<value>BANNER2</value>
+		<name>배너2</name>
+	</item> -->
+</root>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.project.sosqna.service.impl.SOSQnaMapper">
+
+	<sql id="pageBefore">
+		SELECT * FROM
+		(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+		AND a.del_yn = 'N'
+		<if test="schMemid != null and schMemid != ''">
+			AND a.id = #{schMemid}
+		</if>
+		<if test="schStr != null and schStr != ''">
+			<choose><!--  전체 , 제목, 담당자명, 신청인명 -->
+				<when test="schFld == '1'.toString()">
+					AND a.title LIKE '%' || #{schStr} || '%'
+				</when>
+				<when test="schFld == '2'.toString()">
+					AND vnet_v2.FN_MGR_NM(a.mgr_id) LIKE '%' || #{schStr} || '%'
+				</when>
+				<when test="schFld == '3'.toString()">
+					AND vnet_v2.FN_USER_NM(a.id) LIKE '%' || #{schStr} || '%'
+				</when>
+				<otherwise>
+					AND (
+					a.title LIKE '%' || #{schStr} || '%'
+					OR
+					vnet_v2.FN_MGR_NM(a.mgr_id) LIKE '%' || #{schStr} || '%'
+					OR
+					vnet_v2.FN_USER_NM(a.id) LIKE '%' || #{schStr} || '%'
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	<sql id="listColumns">
+		a.seq,
+		a.id,
+		(SELECT user_nm FROM vnet_v2.member  WHERE id = a.id) name,
+		a.title,
+		a.question,
+		a.add_question,
+		a.mgr_id,
+		vnet_v2.FN_MGR_NM(a.mgr_id) mgr_name,
+		a.reply,
+		to_char(to_date(substr(a.end_dt, 1, 8), 'yyyyMMdd'), 'yyyy-MM-dd') end_dt,
+		a.user_file_seq,
+		a.mgr_file_seq,
+		a.status_cd,
+		vnet_v2.FN_PRV_NM(a.status_cd, 11) status_name,
+		a.del_yn,
+		to_char(to_date(substr(a.reg_dt, 1, 8), 'yyyyMMdd'), 'yyyy-MM-dd') reg_dt,
+		a.modi_dt
+	</sql>
+	<sql id="prevnextColumns">
+		a.seq,
+		a.id,
+		a.title,
+		a.question,
+		a.add_question,
+		a.mgr_id,
+		a.reply,
+		a.end_dt,
+		a.user_file_seq,
+		a.mgr_file_seq,
+		a.status_cd,
+		a.del_yn,
+		a.reg_dt,
+		a.modi_dt
+	</sql>
+	
+	
+	<select id="selectSOSQnaList" parameterType="defaultVO" resultType="egovframework.itgcms.project.sosqna.service.SOSQnaVO">
+		/* selectSOSQnaList */
+		<include refid="pageBefore" />
+		SELECT
+			<include refid="listColumns" />
+		FROM vnet_v2.sn_voc a
+		WHERE 1=1
+		<include refid="listWhere" />
+		<choose>
+			<when test="ordFld != '' and ordFld != null and ordBy != '' and ordBY != null">
+				ORDER BY
+				<choose>
+					<when test="ordFld == '1'"> a.title </when>
+					<when test="ordFld == '2'"> a.reg_dt </when>
+				</choose>
+				${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+			</when>
+			<otherwise>
+				ORDER BY a.seq DESC
+			</otherwise>
+		</choose>
+		<include refid="pageAfter" />
+	</select>
+
+	<select id="selectSOSQnaListTotCnt" parameterType="defaultVO" resultType="int">
+		/* selectSOSQnaListTotCnt */
+		SELECT COUNT(*) totcnt
+		FROM vnet_v2.sn_voc a
+		WHERE 1=1
+		<include refid="listWhere" />
+	</select>
+	
+	<select id="selectSOSQnaView" parameterType="defaultVO" resultType="egovframework.itgcms.project.sosqna.service.SOSQnaVO">
+		SELECT 
+		<include refid="listColumns" />
+		FROM vnet_v2.sn_voc a
+		WHERE 1=1
+		AND seq = #{schId}
+		<if test="schMemid != null and schMemid != ''">
+			AND a.id = #{schMemid}
+		</if>
+	</select>
+	
+	<select id="selectSOSQnaViewPrevNext" parameterType="defaultVO" resultType="egovframework.itgcms.project.sosqna.service.SOSQnaVO">
+		WITH prevnext AS (
+			SELECT rn.*, ROWNUM AS rnum FROM (
+				SELECT 
+				<include refid="listColumns" />
+				FROM vnet_v2.sn_voc a
+				WHERE 1=1
+				<include refid="listWhere" />
+		        <choose>
+		            <when test="ordFld != '' and ordFld != null and ordBy != '' and ordBY != null">
+		                ORDER BY
+		                <choose>
+		                    <when test="ordFld == '1'"> a.title </when>
+		                    <when test="ordFld == '2'"> a.reg_dt </when>
+		                </choose>
+		                ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+		            </when>
+		            <otherwise>
+		                ORDER BY a.seq DESC
+		            </otherwise>
+		        </choose>
+			) rn
+		)
+		SELECT 
+			'PREV' as prevnext,
+			<include refid="prevnextColumns" />
+		FROM PREVNEXT a, PREVNEXT bb WHERE a.rnum = bb.rnum - 1
+		AND bb.seq = #{schId}
+		UNION ALL 
+		SELECT 
+			'NEXT' as prevnext,
+			<include refid="prevnextColumns" />
+		FROM PREVNEXT a, PREVNEXT bb WHERE a.rnum = bb.rnum + 1
+		AND bb.seq = #{schId}
+	</select>
+	<select id="selectCoFileList" parameterType="string" resultType="egovMap">
+		SELECT 
+			file_seq, file_id, order_no, file_nm, org_file_nm, 
+			file_path, file_url, file_size, file_type, extension, 
+			input_nm, down_cnt, down_auth, down_user_id, reg_dt 
+		FROM vnet_v2.co_file 
+		WHERE file_seq = #{0}
+		ORDER BY order_no
+	</select>
+</mapper>

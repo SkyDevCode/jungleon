@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.main.service.impl.MngrMainMapper">
+
+	<resultMap id="menu" type="egovframework.itgcms.core.main.service.MngrManagerMenuVO">
+		<result property="menuCode" column="c_code" />
+		<result property="menuName" column="c_name" />
+		<result property="menuUrl" column="etc1" />
+		<result property="menuDepth" column="c_depth" />
+		<result property="menuPcode" column="c_pcode" />
+		<result property="menuOrder" column="c_order" />
+		<result property="menuIcon" column="etc2" />
+		<result property="regdt" column="regdt" />
+		<result property="upddt" column="upddt" />
+		<result property="deldt" column="deldt" />
+		<result property="regmemid" column="regmemid" />
+		<result property="updmemid" column="updmemid" />
+		<result property="delmemid" column="delmemid" />
+		<result property="delyn" column="delyn" />
+		<result property="subtree" column="subtree" />
+	</resultMap>
+
+
+	<resultMap id="recursiveMenu" extends="menu" type="egovframework.itgcms.core.main.service.MngrManagerMenuVO">
+		<id property="id" column="c_code" /><!-- 필수 설정 primary key -->
+		<result property="minDepth" column="minDepth" />
+		<result property="maxDepth" column="maxDepth" />
+		<result property="schStr" column="schStr" />
+		<result property="schLicenseType" column="schLicenseType" />
+		<result property="act" column="act" />
+		<association property="mngrManagerMenuList" column="{id=c_code,minDepth=minDepth,maxDepth=maxDepth,schStr=schStr,schLicenseType=schLicenseType,act=act}" select="mngrManagerMenuListRecursive" />
+	</resultMap>
+
+    <select id="mngrManagerMenuListRecursive" resultMap="recursiveMenu">
+		/***** mngrManagerMenuListRecursive *****/
+		select
+			a.c_code,
+			a.c_name,
+			a.etc1,
+			a.etc2,
+			a.c_depth,
+			a.c_pcode,
+			a.c_order,
+			<!-- 컬럼추가 -->
+			#{minDepth} minDepth,
+			#{maxDepth} maxDepth,
+			#{schStr} schStr,
+			#{schLicenseType} schLicenseType,
+			#{act} act,
+			(select count(*) from t_code b where b.c_pcode = a.c_code and b.delyn = 'N') subtree
+		from t_code a
+		where a.delyn = 'N'
+		<if test="id != null and id != ''">
+			and c_pcode = #{id}
+		</if>
+		<if test='schLicenseType != "M"'>
+			and c_code not in ('SITE')
+		</if>
+			and a.c_auth &lt;= #{schStr}
+			and a.c_depth &gt;= #{minDepth}
+		order by a.c_depth, a.c_order
+	</select>
+
+	<select id="mngrTreeMenuList" parameterType="java.lang.String"  resultMap="menu">
+	/***** mngrTreeMenuList *****/
+		select
+			a.c_code,
+			a.c_name,
+			a.etc1,
+			a.etc2,
+			a.c_depth,
+			a.c_pcode,
+			a.c_order,
+			<!-- 컬럼추가 -->
+			(select count(*) from t_code b where b.c_pcode = a.c_code and b.delyn = 'N') subtree
+		from (
+			select * from t_code ub
+			where  ub.c_pcode in (select uc.c_code from t_code uc where uc.c_pcode in (select ud.c_code from t_code ud where ud.c_pcode in ('sysmenu') and ud.delyn = 'N') and uc.delyn = 'N')
+				or ub.c_pcode in (select ua.c_code from t_code ua where ua.c_pcode in ('sysmenu') and ua.delyn = 'N')
+				or ub.c_pcode in ('sysmenu')
+			) a
+		where a.delyn = 'N'
+		  and a.c_auth between '80' and #{value}
+		order by a.c_depth, a.c_order
+	</select>
+</mapper>

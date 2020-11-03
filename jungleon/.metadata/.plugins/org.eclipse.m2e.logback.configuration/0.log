@@ -1,0 +1,119 @@
+2020-11-03 17:19:58,628 [Worker-2] INFO  c.g.t.t.d.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2020-11-03 17:27:36,840 [Worker-13] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.maven.ide.eclipse.wtp.WarLifecycleMapping lifecycle mapping for MavenProject: kr.co.itgood:cubecms:3.0.7 @ D:\CUBE307\work2\jungleon\SNIP_MNGR\pom.xml.
+2020-11-03 17:27:37,472 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:37,572 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:39,407 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:39,484 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:41,708 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:27:41,709 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:27:41,710 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:27:41,710 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:27:43,739 [Worker-13] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.maven.ide.eclipse.wtp.WarLifecycleMapping lifecycle mapping for MavenProject: kr.co.itgood:cubecms:3.0.7 @ D:\CUBE307\work2\jungleon\SNIP_USR\pom.xml.
+2020-11-03 17:27:44,258 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:44,332 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:45,456 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:45,531 [Worker-13] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:27:46,652 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:27:46,653 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:27:46,654 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:27:46,654 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:28:41,761 [Worker-9] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:28:41,828 [Worker-9] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:28:42,420 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:42,420 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:28:42,422 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:42,422 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:28:43,821 [Worker-21] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:28:43,889 [Worker-21] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:28:44,431 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:44,432 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:28:44,433 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:44,433 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:28:48,682 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:48,682 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:28:48,683 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:28:48,684 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:29:02,608 [Worker-23] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:02,609 [Worker-23] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:29:02,610 [Worker-23] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:02,611 [Worker-23] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:29:12,423 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:12,423 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:29:12,424 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:12,424 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:29:26,781 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:26,782 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:29:26,784 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:26,784 [Worker-21] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:29:49,824 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:49,824 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:29:49,825 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:29:49,826 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:29:55,129 [Worker-19] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2020-11-03 17:29:55,879 [Worker-19] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.maven.ide.eclipse.wtp.WarLifecycleMapping lifecycle mapping for MavenProject: kr.co.itgood:cubecms:3.0.7 @ D:\CUBE307\work2\jungleon\SNIP_MNGR\pom.xml.
+2020-11-03 17:29:56,257 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:29:56,310 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:29:57,271 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:29:57,358 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:29:58,833 [Worker-19] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /SNIP_MNGR/src/main/java
+2020-11-03 17:29:58,844 [Worker-19] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /SNIP_MNGR/src/test/java
+2020-11-03 17:29:59,741 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:29:59,828 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:30:20,213 [Worker-19] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Cleaning filtered folder for SNIP_MNGR
+2020-11-03 17:30:20,232 [Worker-19] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed: 25 sec
+2020-11-03 17:30:30,663 [Worker-28] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:30:30,721 [Worker-28] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:30:31,340 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:30:31,340 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:30:31,341 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:30:31,341 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:30:31,341 [Worker-28] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Changed resources require a complete clean of filtered resources of SNIP_MNGR
+2020-11-03 17:30:31,341 [Worker-28] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Executing resource filtering for SNIP_MNGR
+2020-11-03 17:30:31,346 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:30:48,203 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:30:48,203 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:30:48,204 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:30:48,205 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:31:02,999 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:02,999 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\main\resources
+2020-11-03 17:31:02,999 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:03,000 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_MNGR\src\test\resources
+2020-11-03 17:31:19,841 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:19,842 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:31:19,843 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:19,843 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:31:34,105 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:34,105 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:31:34,106 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:34,106 [Worker-22] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:31:44,790 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:44,791 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:31:44,792 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:44,792 [Worker-13] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:31:59,723 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:59,724 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:31:59,725 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:31:59,725 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:32:07,640 [Worker-24] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2020-11-03 17:32:08,481 [Worker-24] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.maven.ide.eclipse.wtp.WarLifecycleMapping lifecycle mapping for MavenProject: kr.co.itgood:cubecms:3.0.7 @ D:\CUBE307\work2\jungleon\SNIP_USR\pom.xml.
+2020-11-03 17:32:08,814 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:08,878 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:09,689 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:09,740 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:10,905 [Worker-24] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /SNIP_USR/src/main/java
+2020-11-03 17:32:10,906 [Worker-24] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /SNIP_USR/src/test/java
+2020-11-03 17:32:11,477 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:11,534 [Worker-24] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:12,816 [Worker-24] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Cleaning filtered folder for SNIP_USR
+2020-11-03 17:32:12,834 [Worker-24] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed: 5 sec
+2020-11-03 17:32:23,936 [Worker-28] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for cubrid:cubrid-jdbc:jar:8.4.1.2032 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:23,994 [Worker-28] WARN  o.e.m.c.i.embedder.EclipseLogger - The POM for net.sf.ehcache:ehcache-terracotta:jar:2.1.1 is invalid, transitive dependencies (if any) will not be available, enable debug logging for more details
+2020-11-03 17:32:24,521 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:32:24,522 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources
+2020-11-03 17:32:24,523 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:32:24,523 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\test\resources
+2020-11-03 17:32:24,523 [Worker-28] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Changed resources require a complete clean of filtered resources of SNIP_USR
+2020-11-03 17:32:24,523 [Worker-28] INFO  o.e.m.w.i.f.ResourceFilteringBuildParticipant - Executing resource filtering for SNIP_USR
+2020-11-03 17:32:24,530 [Worker-28] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:32:38,410 [Worker-24] INFO  o.e.m.c.i.embedder.EclipseLogger - Using 'UTF-8' encoding to copy filtered resources.
+2020-11-03 17:32:38,410 [Worker-24] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory D:\CUBE307\work2\jungleon\SNIP_USR\src\main\resources

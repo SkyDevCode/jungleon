@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.managerlog.service.impl.MngrManagerLogMapper">
+
+	<resultMap id="managerlog" type="egovframework.itgcms.core.managerlog.service.MngrManagerLogVO">
+		<result property="mlogRegdt"		column="mlog_regdt" />
+		<result property="mlogClass"		column="mlog_class" />
+		<result property="mlogMethod"		column="mlog_method" />
+		<result property="mlogType"		column="mlog_type" />
+		<result property="mngId"	column="mng_id" />
+		<result property="mngName"		column="mng_name" />
+		<result property="mlogIp"		column="mlog_ip" />
+		<result property="mlogUrl"	column="mlog_url" />
+		<result property="mlogReferer"	column="mlog_referer" />
+		<result property="mlogTypeName"	column="mlogTypeName" />
+	</resultMap>
+
+	<sql id="pageBefore">
+		SELECT * FROM
+			(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+			) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+            <if test="schStr != null and schStr != ''">
+                <choose>
+                    <when test="schFld == '1'.toString()">
+                        and a.mng_id like '%' || #{schStr} || '%'
+                    </when>
+                    <when test="schFld == '2'.toString()">
+                        and a.mng_name like '%' || #{schStr} || '%'
+                    </when>
+                    <otherwise>
+                        and (
+                            a.mng_id like '%' || #{schStr} || '%'
+                            or
+                            a.mng_name like '%' || #{schStr} || '%'
+                            )
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="schSdt != null and schSdt != ''">
+                and to_char(mlog_regdt, 'YYYY-MM-DD') &gt;= #{schSdt}
+            </if>
+            <if test="schEdt != null and schEdt != ''">
+                and to_char(mlog_regdt, 'YYYY-MM-DD') &lt;= #{schEdt}
+            </if>
+            <if test="schType != null and schType != ''">
+                and mlog_type = #{schType}
+            </if>
+    </sql>
+
+
+    <select id="selectMngrManagerLogList" parameterType="egovframework.itgcms.core.managerlog.service.MngrManagerLogSearchVO" resultMap="managerlog">
+    	<if test="excelDown != 'excel'">
+    		<include refid="pageBefore"/>
+        </if>
+        select
+        	CAST(a.mlog_regdt as DATE ) AS mlog_regdt,
+			a.mlog_class,
+			a.mlog_method,
+			a.mlog_type,
+			a.mng_id,
+			a.mng_name,
+			a.mlog_ip,
+			a.mlog_url,
+			a.mlog_referer,
+			CASE WHEN a.mlog_type = 'C' THEN '등록'
+			     WHEN a.mlog_type = 'R' THEN '조회'
+			     WHEN a.mlog_type = 'U' THEN '수정'
+			     WHEN a.mlog_type = 'D' THEN '삭제'
+			END AS mlogTypeName
+
+        from t_manager_log a
+            where 1=1
+            and a.mlog_personalinfo not in ('1')
+            <include refid="listWhere" />
+
+            order by mlog_regdt desc
+<!--            limit #{recordCountPerPage} offset #{firstIndex} -->
+
+            <if test="excelDown != 'excel'">
+            	<include refid="pageAfter"/>
+            </if>
+    </select>
+
+    <select id="mngrManagerLogListTotCnt" parameterType="egovframework.itgcms.core.managerlog.service.MngrManagerLogSearchVO" resultType="int">
+
+            select count(*) totcnt
+            from t_manager_log a
+            where 1=1
+                <include refid="listWhere" />
+    </select>
+
+	<insert id="mngrManagerLogInsert">
+	   insert into t_manager_log(
+	       mlog_regdt,
+	       mlog_class,
+	       mlog_method,
+	       mlog_type,
+	       mng_id,
+	       mng_name,
+	       mlog_ip,
+	       mlog_url,
+	       mlog_referer
+	       <if test="mlogPersonalinfo != null and mlogPersonalinfo !=''">
+	       , mlog_personalinfo
+	       </if>
+	     ) values (
+	       CURRENT_TIMESTAMP,
+           #{mlogClass},
+           #{mlogMethod},
+           #{mlogType},
+           #{mngId},
+           #{mngName},
+           #{mlogIp},
+           #{mlogUrl},
+           #{mlogReferer}
+           <if test="mlogPersonalinfo != null and mlogPersonalinfo !=''">
+           , #{mlogPersonalinfo}
+           </if>
+	     )
+	</insert>
+
+	<delete id="deleteMngrManagerLogProc">
+	   DELETE FROM t_manager_log
+       WHERE TO_CHAR(mlog_regdt, 'YY/MM/DD') &lt; TO_CHAR(TRUNC(SYSDATE) - 180)
+	</delete>
+
+</mapper>

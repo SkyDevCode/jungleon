@@ -1,0 +1,31 @@
+1. skin 폴더 아래에 영문 폴더 생성(가급적 특수문자 사용 자제)
+2. skin 폴더 아래에 스킬파일 생성
+ - 필수 파일 : ~~~.jsp, . 없는 스킨타이틀 파일
+ 3. 사용자(web), 관리자(_mngr_) 용 파일 생성
+ 4. 기능별 파일 생성
+ 5. 파일명규칙
+ 	- 사용구분(web|_mngr_) _(언더바)스킨코드_(언더바)기능.jsp
+ 6. 샘플 폴더 구조
+ 스킨코드 : default
+ 스킨명 : 일반 게시판
+ skin/default
+ 	- 일반게시판 (파일)
+ 	- web_default_list.jsp
+ 	- web_default_regist.jsp
+ 	- _mngr__default_list.jsp
+ 	- _mngr__default_regist.jsp
+ 	
+ 	
+ 	7. 스킨에 따른 게시판 설정의 기능제한
+ 	mngrBoardconfigRegist.jsp
+ 	<tr>
+ 	~~ 게시판 기능 설정
+ 	</tr>
+ 	
+ 	=>
+ 	
+ 	<tr class="_SKINOPTION_ for스킨코드명대문자">
+ 	을 추가하면 해당 스킨만 설정 할수 있게 표시 됨
+ 	
+ 	예) <tr class="_SKINOPTION_ forGALLERY forGALLERY2 forMOVIE" style="display: none;">
+ 	skin명 gallery gallery2 movie 만 사용가능한 경우

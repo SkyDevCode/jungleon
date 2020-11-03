@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.link.service.impl.LinkMapper">
+
+	<select id="selectFileVO" parameterType="hashmap" resultType="itgMap">
+		SELECT
+			   FILE_IDX,
+			   FILE_ID,
+			   FILE_SEQ,
+			   FILE_NAME,
+		       FILE_SIZE,
+		       FILE_FOLDER,
+		       FILE_MASK,
+		       DOWNLOAD_COUNT,
+		       DOWNLOAD_EXPIRE_DATE,
+		       DOWNLOAD_LIMIT_COUNT,
+		       REG_DATE
+		  FROM J_ATTACHFILE
+		  <where>
+		  	DELETE_YN = 'N'
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileIdx)">
+		       AND FILE_IDX  = #{fileIdx}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileId)">
+		       AND FILE_ID  = #{fileId}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeq)">
+		       AND FILE_SEQ = #{fileSeq}
+		  	</if>
+		  </where>
+		  ORDER BY FILE_SEQ ASC
+	</select>
+
+
+</mapper>

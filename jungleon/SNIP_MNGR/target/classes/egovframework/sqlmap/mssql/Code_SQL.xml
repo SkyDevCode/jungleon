@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.code.service.impl.MngrCodeMapper">
+
+	<resultMap id="mngrCodeVO" type="egovframework.itgcms.core.code.service.MngrCodeVO">
+	    <result property="ccode" column="C_CODE"/>
+	    <result property="cname" column="C_NAME"/>
+	    <result property="cpcode" column="C_PCODE"/>
+	    <result property="cdepth" column="C_DEPTH"/>
+	    <result property="corder" column="C_ORDER"/>
+	    <result property="cauth" column="C_AUTH"/>
+	    <result property="etc1" column="ETC1"/>
+	    <result property="etc2" column="ETC2"/>
+	    <result property="exp1" column="EXP1" />
+	    <result property="regdt" column="REGDT"/>
+	    <result property="upddt" column="UPDDT"/>
+	    <result property="deldt" column="DELDT"/>
+	    <result property="regmemid" column="REGMEMID"/>
+	    <result property="updmemid" column="UPDMEMID"/>
+	    <result property="delmemid" column="DELMEMID"/>
+	    <result property="defaultyn" column="DEFAULTYN"/>
+	    <result property="delyn" column="DELYN"/>
+	    <result property="subtree" column="subtree"/>
+	    <result property="pcodename" column="PCODENAME"/>
+	</resultMap>
+
+	<select id="selectMngrCodeList" parameterType="egovframework.itgcms.core.code.service.MngrCodeVO" resultMap="mngrCodeVO">
+		/* mngrCodeList */
+			SELECT
+				A.C_CODE,
+				A.C_NAME,
+				A.C_PCODE,
+				A.C_DEPTH,
+				A.C_ORDER,
+				A.C_AUTH,
+				A.ETC1,
+				A.ETC2,
+				A.EXP1,
+				A.REGDT,
+				A.UPDDT,
+				A.DELDT,
+				A.REGMEMID,
+				A.UPDMEMID,
+				A.DELMEMID,
+				A.DEFAULTYN,
+				A.DELYN,
+				(SELECT COUNT(*) FROM T_CODE WHERE C_PCODE = A.C_CODE AND DELYN = 'N') subtree
+			 FROM t_code A
+			 WHERE A.DELYN = 'N'
+			    <if test="schCode neq ''">
+			    	<choose>
+			    		<when test="useType == 'board'">
+			    			AND A.C_CODE LIKE #{schCode} + '%'
+			    			AND A.C_DEPTH > '2'
+			    		</when>
+			    		<otherwise>
+				        	AND A.C_PCODE = #{schCode}
+			    		</otherwise>
+			    	</choose>
+				</if>
+				<choose>
+			<when test="cauth eq '' or cauth eq null">
+				AND A.C_AUTH = '00'
+			</when>
+			<when test="cauth lt '99'">
+				AND A.C_AUTH &lt;= #{cauth}
+			</when>
+		</choose>
+			 ORDER BY C_ORDER
+    </select>
+
+    <select id="selectMngrCodeInfoAjax" parameterType="egovframework.itgcms.core.code.service.MngrCodeVO" resultMap="mngrCodeVO">
+    	/* mngrCodeRegistAjax */
+    		SELECT
+				A.C_CODE,
+				A.C_NAME,
+				A.C_PCODE,
+				A.C_DEPTH,
+				A.C_ORDER,
+				A.C_AUTH,
+				A.ETC1,
+				A.ETC2,
+				A.EXP1,
+				A.REGDT,
+				A.UPDDT,
+				A.DELDT,
+				A.REGMEMID,
+				A.UPDMEMID,
+				A.DELMEMID,
+				A.DEFAULTYN,
+				A.DELYN,
+				(SELECT COUNT(*) FROM T_CODE WHERE C_PCODE = A.C_CODE AND DELYN = 'N') subtree,
+				B.C_NAME PCODENAME
+			 FROM t_code A
+			 LEFT JOIN t_code B ON A.C_PCODE = B.C_CODE
+			 WHERE
+			 	A.DELYN = 'N'
+			 	AND A.C_CODE = #{schCode}
+    </select>
+
+    <select id="mngrCodeDupleCheck" parameterType="egovframework.itgcms.core.code.service.MngrCodeVO" resultType="int">
+    	/* mngrCodeDupleCheck */
+    	SELECT COUNT(*) CNT FROM T_CODE
+    	WHERE
+    		C_CODE = #{ccode}
+	</select>
+
+    <insert id="insertCode">
+    	/* insertCode */
+			INSERT INTO t_code (
+				   C_CODE,
+				   C_NAME,
+				   C_PCODE,
+				   C_DEPTH,
+				   C_ORDER,
+				   <if test="cauth != null and cauth != ''">
+				   C_AUTH,
+				   </if>
+				   <if test="etc1 != null">
+				   ETC1,
+				   </if>
+				   <if test="etc2 != null">
+				   ETC2,
+				   </if>
+				   EXP1,
+				   REGDT,
+				   REGMEMID,
+				   DELYN
+			) VALUES (
+				   #{ccode},
+				   #{cname},
+				   #{schCode},
+				   (
+				       SELECT ISNULL(MAX(C_DEPTH), 0) + 1
+			               FROM t_code
+					      WHERE C_CODE = #{schCode}
+				    ),
+				   (
+				       SELECT ISNULL(MAX(C_ORDER), 0) + 1
+			               FROM t_code
+					      WHERE C_PCODE = #{schCode}
+				    ),
+				   <if test="cauth != null and cauth != ''">
+				   #{cauth},
+				   </if>
+				   <if test="etc1 != null">
+				   #{etc1},
+				   </if>
+				   <if test="etc2 != null">
+				   #{etc2},
+				   </if>
+				   #{exp1},
+				   GETDATE(),
+				   #{regmemid},
+				   'N'
+			)
+    </insert>
+
+     <update id="updateMngrCode">
+     	/* mngrCodeUpdate */
+	        UPDATE T_CODE SET
+	               UPDDT    = GETDATE(),
+	               UPDMEMID = #{updmemid},
+	               C_NAME   = #{cname}
+	               <if test="cauth != null and cauth != ''">
+	               ,C_AUTH   = #{cauth}
+	               </if>
+	               <if test="etc1 != null">
+	               ,ETC1   	= #{etc1}
+	               </if>
+	               <if test="etc2 != null">
+	               ,ETC2   	= #{etc2}
+	               </if>
+	               ,EXP1 = #{exp1}
+	         WHERE C_CODE    = #{schCode}
+    </update>
+
+    <update id="deleteMngrCodeAjax">
+    	/* mngrCodeRegistDeleteAjax */
+    		<!-- 코드삭제 : 코드변경 %y(year,2자리),%j(day of year),%H(24시),%i(분),%s(초) -->
+	        UPDATE t_code SET
+        		   c_code   = c_code + REPLACE(CONVERT(VARCHAR, getdate(), 102), '.', '') + REPLACE(CONVERT(VARCHAR, getdate(), 108), ':', ''),
+	               DELYN    = 'Y',
+	               DELDT    = GETDATE(),
+	               DELMEMID = #{delmemid}
+	         WHERE C_CODE   = #{schCode}
+    </update>
+
+	<update id="mngrCodeDeleteSubCodes">
+    	/* mngrCodeDeleteSubCodes */
+    		<!-- 코드삭제 : 코드변경 %y(year,2자리),%j(day of year),%H(24시),%i(분),%s(초) -->
+	        UPDATE t_code SET
+        		   c_code   = c_code + REPLACE(CONVERT(VARCHAR, getdate(), 102), '.', '') + REPLACE(CONVERT(VARCHAR, getdate(), 108), ':', ''),
+	               DELYN    = 'Y',
+	               DELDT    = GETDATE(),
+	               DELMEMID = #{delmemid}
+	         WHERE (C_CODE   = #{schCode}
+	         <if test = "schCode != null">
+	         		OR C_PCODE    LIKE #{schCode} + '%'
+	         </if>)
+	         		AND DELYN ='N'
+    </update>
+
+	<select id="mngrCodeSwapTarget" parameterType="egovframework.itgcms.core.code.service.MngrCodeVO" resultMap="mngrCodeVO">
+		/* mngrCodeSwapTarget */
+		SELECT
+			TOP 1
+			A.C_CODE,
+			A.C_NAME,
+			A.C_PCODE,
+			A.C_DEPTH,
+			A.C_ORDER,
+			A.C_AUTH,
+			A.ETC1,
+			A.ETC2,
+			A.EXP1,
+			A.REGDT,
+			A.UPDDT,
+			A.DELDT,
+			A.REGMEMID,
+			A.UPDMEMID,
+			A.DELMEMID,
+			A.DEFAULTYN,
+			A.DELYN,
+			(SELECT COUNT(*) FROM T_CODE WHERE C_PCODE = A.C_CODE AND DELYN = 'N') SUBTREE
+		FROM T_CODE A
+		WHERE A.DELYN = 'N'
+		<choose>
+			<when test="swaptype eq 'UP'">
+				AND C_ORDER &lt; (SELECT C_ORDER FROM T_CODE WHERE C_CODE= #{schCode} AND C_PCODE = A.C_PCODE AND DELYN = 'N')
+				ORDER BY C_ORDER DESC
+			</when>
+			<when test="swaptype eq 'DOWN'">
+				AND C_ORDER &gt; (SELECT C_ORDER FROM T_CODE WHERE C_CODE= #{schCode} AND C_PCODE = A.C_PCODE AND DELYN = 'N')
+				ORDER BY C_ORDER ASC
+			</when>
+		</choose>
+    </select>
+
+	<update id="mngrCodeSwap">
+    	/* mngrCodeSwap */
+    	UPDATE T_CODE SET
+    		C_ORDER = #{corder}
+    	WHERE
+    		C_CODE = #{ccode}
+    </update>
+
+	<select id="mngrCodeMaxCode" resultMap="mngrCodeVO">
+    	/* mngrCodeMaxCode */
+    	select
+    		max(c_code ) c_code,
+    		c_name,
+    		c_pcode
+    	from t_code
+		where c_pcode = #{cpcode}
+		group by c_code, c_name, c_pcode
+    </select>
+</mapper>

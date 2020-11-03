@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.stats.service.impl.MngrStatsMapper">
+
+<!-- 	<resultMap id="statsMap" type="egovframework.itgcms.core.stats.service.MngrStatsVO">
+		<result property="clIdx" column="cl_idx" />
+		<result property="clAgent" column="cl_agent" />
+		<result property="clOs" column="cl_os" />
+		<result property="clBrowser" column="cl_browser" />
+		<result property="clKeyword" column="cl_keyword" />
+		<result property="clReferer" column="cl_referer" />
+		<result property="clIp" column="cl_ip" />
+		<result property="clLanguage" column="cl_language" />
+		<result property="regdt" column="regdt" />
+	</resultMap> -->
+	<resultMap id="statsMap" type="egovframework.itgcms.core.stats.service.MngrStatsVO"/>
+	<resultMap id="countMap" type="egovframework.itgcms.core.stats.service.MngrCountVO"/>
+
+	<select id="mngrStatsList" resultMap="statsMap">
+		SELECT
+			cl_idx,     cl_agent,    cl_os,
+			cl_browser, cl_keyword,  cl_referer,
+			cl_ip,      cl_language, regdt
+		FROM
+			T_CONNECTION_LOG
+		ORDER BY cl_idx desc
+	</select>
+
+<!-- 	<update id="mngrStatsUpdate" parameterType="egovframework.itgcms.core.stats.service.MngrStatsVO">
+		/* mngrStatsUpdate */
+		update
+			T_CONNECTION_LOG
+		set
+			cl_keyword = #{clKeyword}
+
+		where
+			cl_idx = #{clIdx}
+	</update> -->
+
+<!-- 	<update id="mngrStatsUpdate" parameterType="egovframework.itgcms.core.stats.service.MngrStatsVO">
+		/* mngrStatsUpdate */
+		update
+			T_CONNECTION_LOG
+		set
+			cl_language = #{clLanguage}
+
+		where
+			cl_idx = #{clIdx}
+	</update> -->
+
+	<!--
+	 * 접속로그 저장
+	 * @param mngrCountVO
+	-->
+	<insert id="mngrStatsInsert" parameterType="mngrStatsVO">
+		insert into T_CONNECTION_LOG(
+			cl_idx,
+			cl_agent,
+			cl_os,
+			cl_browser,
+			cl_keyword,
+			cl_referer,
+			cl_ip,
+			cl_language
+		 ) values(
+			T_CONNECTION_LOG_SEQ.nextval,
+			#{clAgent},
+			#{clOs},
+			#{clBrowser},
+			#{clKeyword},
+			#{clReferer},
+			#{clIp},
+			#{clLanguage}
+		)
+	</insert>
+
+	<!--
+	 * 날짜별 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="selectMngrDateCountList" resultMap="countMap">
+	/** selectMngrDateCountList **/
+			SELECT
+			cnt_option,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			cnt_hour,
+			<if test="cntOption == 'HOUR'">etc as cnt_date,</if>
+			<if test="cntOption == 'DAY'">substr(etc, 0, 10) as cnt_date,</if>
+			<if test="cntOption == 'MONTH'">substr(etc, 0, 7) as cnt_date,</if>
+			<if test="cntOption == 'YEAR'">substr(etc, 0, 4) as cnt_date,</if>
+			sum(cnt_count) cnt_count,
+			etc
+		FROM
+			T_COUNT_DATE
+		WHERE cnt_option = #{cntOption}
+			<if test="cntOption == 'HOUR' or cntOption=='DAY' or cntOption=='MONTH'">AND cnt_year   = #{cntYear}</if>
+		    <if test="cntOption == 'HOUR' or cntOption=='DAY'">AND cnt_month  = #{cntMonth}</if>
+		    <if test="cntOption == 'HOUR'">AND cnt_day  = #{cntDay}</if>
+			<if test="siteCode != 'all'">AND site_code  = #{siteCode}</if>
+		GROUP by cnt_option, cnt_year, cnt_month, cnt_day, cnt_hour, etc
+		ORDER BY etc asc
+	</select>
+
+	<!--
+	 * 기간별 통계정보 리스트(관리자메인)
+	 * @param mngrCountVO
+	-->
+	<select id="mngrTermCountListforMain" resultMap="countMap">
+	/**mngrTermCountListforMain**/
+		SELECT  	cnt_option,
+				cnt_year,
+				cnt_month,
+				cnt_day,
+				sum(cnt_count) cnt_count,
+				etc
+		  FROM T_COUNT_DATE
+		 WHERE cnt_option = #{cntOption}
+		 		and ETC between #{startDate} and #{endDate}
+		 		<if test="siteCode != 'all'">AND site_code  = #{siteCode}</if>
+		 GROUP BY cnt_option, cnt_year, cnt_month, cnt_day, etc
+		 ORDER BY etc ASC
+	</select>
+
+	<!--
+	 * 기간별 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="selectMngrTermCountList" resultMap="countMap">
+	/**mngrTermCountList**/
+		SELECT  	A.cnt_option,
+				<if test="cntOption == 'HOUR'">A.cnt_hour as cnt_date,</if>
+				<if test="cntOption == 'DAY'">A.cnt_day as cnt_date,</if>
+				<if test="cntOption == 'MONTH'">A.cnt_month as cnt_date,</if>
+				<if test="cntOption == 'YEAR'">A.cnt_year as cnt_date,</if>
+				A.cnt_count
+		  FROM (
+				SELECT
+					cnt_option,
+					<if test="cntOption == 'HOUR'">cnt_hour,</if>
+					<if test="cntOption == 'DAY'">cnt_day,</if>
+					<if test="cntOption == 'MONTH'">cnt_month,</if>
+					<if test="cntOption == 'YEAR'">cnt_year,</if>
+					sum(CNT_COUNT) as cnt_count
+				FROM
+					T_COUNT_DATE
+				WHERE cnt_option = #{cntOption}
+				  and ETC between #{startDate} and #{endDate}
+			  	<if test="siteCode != 'all'">AND site_code  = #{siteCode}</if>
+			  	GROUP BY  cnt_option
+					<if test="cntOption == 'HOUR'">,cnt_hour</if>
+					<if test="cntOption == 'DAY'">,cnt_day</if>
+					<if test="cntOption == 'MONTH'">,cnt_month</if>
+					<if test="cntOption == 'YEAR'">,cnt_year</if>
+				) A
+		 WHERE 1=1
+		 ORDER BY cnt_date ASC
+	</select>
+
+
+	<!--
+	 * 기간별 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="mngrTermCountByDayOfWeekList" resultMap="countMap">
+	/** mngrTermCountByDayOfWeekList **/
+	select
+			dayweek as etc,
+			dataTable.cnt_count,
+			case dataTable.dayweek
+				when '1' then '일요일'
+				when '2' then '월요일'
+				when '3' then '화요일'
+				when '4' then '수요일'
+				when '5' then '목요일'
+				when '6' then '금요일'
+				when '7' then '토요일'
+			end as cnt_date
+            from
+            (select
+                sum(CNT_COUNT) as cnt_count,
+				dayweek
+            from
+                (
+            	SELECT
+				cnt_count,
+				to_char(to_date(cnt_year || '-' || cnt_month || '-' || cnt_day, 'yyyy-MM-DD'), 'D') as dayweek,
+                to_date(cnt_year || '-' || cnt_month || '-' || cnt_day, 'yyyy-MM-DD') as cdate
+				FROM
+					t_count_date
+				where
+				CNT_OPTION = 'DAY'
+                )
+            where
+                cdate between to_date(#{startDate}, 'yyyy-MM') and to_date(#{endDate}, 'yyyy-MM')
+				group by
+				dayweek
+				order by
+				dayweek
+            ) dataTable
+	</select>
+	<!--
+	 * 날짜별 통계정보 저장
+	 * @param mngrCountVO
+	-->
+	<insert id="mngrDateCountInsert" parameterType="mngrCountVO">
+		/* mngrDateCountInsert */
+		insert into T_COUNT_DATE(
+			cd_idx,
+			cnt_option,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			cnt_hour,
+			<!-- cnt_count, -->
+			site_code,
+			etc
+		 ) values(
+			T_COUNT_DATE_SEQ.nextval,
+			#{cntOption},
+			#{cntYear},
+			#{cntMonth},
+			#{cntDay},
+			#{cntHour},
+			#{siteCode},
+			<!-- #{cntCount}, -->
+			#{etc}
+		)
+	</insert>
+
+	<!--
+	 * 날짜별 통계정보 업데이트
+	 * @param mngrCountVO
+	-->
+	<update id="mngrDateCountUpdate" parameterType="mngrCountVO">
+		/* mngrDateCountUpdate */
+		update
+			T_COUNT_DATE
+		set
+			cnt_count = cnt_count+1
+		where
+			cnt_option = #{cntOption}
+			and cnt_year = #{cntYear}
+			and cnt_month = #{cntMonth}
+			and cnt_day = #{cntDay}
+			and cnt_hour = #{cntHour}
+			and site_code = #{siteCode}
+	</update>
+
+	<!--
+	 * 옵션별 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="selectMngrOptionCountList" resultMap="countMap">
+		/* selectMngrOptionCountList */
+		SELECT
+			max(co_idx) as co_idx,
+			cnt_option,
+			cnt_name,
+			SUM(cnt_count) AS cnt_count
+		FROM
+			T_COUNT_OPTION
+		WHERE cnt_option = #{cntOption}
+		 <if test="siteCode != 'all'">AND site_code  = #{siteCode}</if>
+		GROUP BY cnt_name, cnt_option
+		ORDER BY cnt_count DESC
+	</select>
+
+	<!--
+	 * 옵션별 통계정보 저장
+	 * @param mngrCountVO
+	-->
+	<insert id="mngrOptionCountInsert" parameterType="mngrCountVO">
+		/* mngrOptionCountInsert */
+		insert into T_COUNT_OPTION(
+			co_idx,
+			cnt_option,
+			cnt_name,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			site_code,
+			<!-- cnt_count, -->
+			etc
+		 ) values(
+			T_COUNT_OPTION_SEQ.nextval,
+			#{cntOption},
+			#{cntName},
+			#{cntYear},
+			#{cntMonth},
+			#{cntDay},
+			#{siteCode},
+			<!-- #{cntCount}, -->
+			#{etc}
+		)
+	</insert>
+
+	<!--
+	 * 옵션별 통계정보 업데이트
+	 * @param mngrCountVO
+	-->
+	<update id="mngrOptionCountUpdate" parameterType="mngrCountVO">
+		/* mngrOptionCountUpdate */
+		update
+			T_COUNT_OPTION
+		set
+			cnt_count = cnt_count+1
+		where
+			cnt_option = #{cntOption}
+			and cnt_name = #{cntName}
+			and cnt_year = #{cntYear}
+			and cnt_month = #{cntMonth}
+			and cnt_day = #{cntDay}
+			and site_code = #{siteCode}
+	</update>
+
+	<!--
+	 * 메뉴별 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="selectMngrMenuCountList" resultMap="countMap">
+	/* selectMngrMenuCountList */
+	SELECT  A.cm_idx,
+			A.cnt_option,
+			A.cnt_name,
+			A.cnt_year,
+			A.cnt_month,
+			A.cnt_day,
+			A.cnt_count,
+			B.menu_pfullname as menu_full_name,
+			B.menu_name,
+			B.menu_sitecode site_code
+	  FROM (
+			SELECT 	max(t.cm_idx) as cm_idx,
+					cnt_option,
+					cnt_name,
+					max(cnt_year) as cnt_year,
+					max(cnt_month) as cnt_month,
+					max(cnt_day) as cnt_day,
+					sum(CNT_COUNT) as cnt_count
+			  FROM  T_COUNT_MENU t,
+             	   (select cm_idx, substr(etc, -10) r from T_COUNT_MENU) retc
+			 WHERE t.cm_idx = retc.cm_idx
+				   and cnt_option = #{cntOption}
+				   and retc.r BETWEEN
+				   <if test="cntOption == 'DAY'">
+	           		 to_date(#{startDate}, 'yyyy-MM-dd') and to_date(#{endDate}, 'yyyy-MM-dd')
+	        	   </if>
+	      		   <if test="cntOption == 'MONTH'">
+	            	 to_date(#{startDate}, 'yyyy-MM') and to_date(#{endDate}, 'yyyy-MM')
+	      		   </if>
+	       		   <if test="cntOption == 'YEAR'">
+	                 to_date(#{startDate}, 'yyyy') and to_date(#{endDate}, 'yyyy')
+				   </if>
+				   <if test="siteCode != 'all' and siteCode != ''">
+			       and site_code = #{siteCode}
+			       </if>
+			 GROUP BY cnt_name, cnt_option
+			) A
+	  LEFT JOIN T_MENU B on A.cnt_name = B.menu_code
+	  WHERE A.cm_idx IS NOT NULL
+	  ORDER BY cnt_count DESC
+
+
+	</select>
+
+	<!--
+	 * 메뉴별 통계정보 저장
+	 * @param mngrCountVO
+	-->
+	<insert id="mngrMenuCountInsert" parameterType="mngrCountVO">
+		/* mngrOptionCountInsert */
+		insert into T_COUNT_MENU(
+			cm_idx,
+			cnt_option,
+			cnt_name,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			site_code,
+			<!-- cnt_count, -->
+			etc
+		 ) values(
+			T_COUNT_MENU_SEQ.nextval,
+			#{cntOption},
+			#{cntName},
+			#{cntYear},
+			#{cntMonth},
+			#{cntDay},
+			#{siteCode},
+			<!-- #{cntCount}, -->
+			#{etc}
+		)
+	</insert>
+
+	<!--
+	 * 메뉴별 통계정보 업데이트
+	 * @param mngrCountVO
+	-->
+	<update id="mngrMenuCountUpdate" parameterType="mngrCountVO">
+		/* mngrOptionCountUpdate */
+		update
+			T_COUNT_MENU
+		set
+			cnt_count = cnt_count+1
+		where
+			cnt_option = #{cntOption}
+			and cnt_name = #{cntName}
+			and cnt_year = #{cntYear}
+			and cnt_month = #{cntMonth}
+			and cnt_day = #{cntDay}
+			and site_code = #{siteCode}
+	</update>
+
+
+
+
+	<!--
+     * 관리자 메인 접속 카운트 조회
+     * @param mngrCountVO
+    -->
+	<select id="getTodayVisitCount" resultType="int">
+	/* getTodayVisitCount */
+    SELECT
+	    nvl(sum(CNT_COUNT), 0) as cnt_count
+    FROM
+        T_COUNT_DATE
+    WHERE
+       <choose>
+            <when  test="cntOption == 'YEAR_GROUP'">
+                <!-- 연도를 group by 하면 전체 접속 카운트가 됨. -->
+		          cnt_option = 'YEAR'
+		          /* group by CNT_COUNT */
+            </when>
+            <otherwise>
+                cnt_option = #{cntOption}
+                <if test="cntOption == 'YEAR'"> <!-- 해당연도 -->
+		           and cnt_year = #{cntYear}
+		        </if>
+		        <if test="cntOption == 'MONTH'"> <!--  해당 년 월 -->
+		           and cnt_year = #{cntYear}
+		           and cnt_month = #{cntMonth}
+		        </if>
+		        <if test="cntOption == 'DAY'"> <!--  해당 년 월 일 -->
+		           and cnt_year = #{cntYear}
+		           and cnt_month = #{cntMonth}
+		           and cnt_day = #{cntDay}
+		        </if>
+            </otherwise>
+       </choose>
+       <if test="schSitecode != '' and schSitecode != 'all'">
+       		and site_code = #{schSitecode}
+       </if>
+	</select>
+
+	<select id="selectMngrBoardStats" resultType="itgMap">
+	/* selectMngrBoardStats */
+		select
+			m.menu_code,
+			m.menu_name,
+		    m.menu_pfullname,
+		    c.bc_id,
+		    (select count(1) from t_board b where bc_id=c.bc_id) as count_list,
+		    NVL((select sum(bd_readnum) from t_board b where bc_id=c.bc_id), 0) as sum_read_num
+		from t_menu m, t_board_config c
+		where
+			menu_sitecode = #{siteCode}
+			and m.menu_subType = c.bc_id
+			order by count_list desc
+	</select>
+
+	<select id="mngrAgeGroupStats" resultType="map">
+		select
+			count(1) as num,
+		    case
+				when age&lt;10 then '10대 미만'
+		        when age&lt;20 then '10대'
+		        when age&lt;30 then '20대'
+		        when age&lt;40 then '30대'
+		        when age&lt;50 then '40대'
+		        when age&lt;60 then '50대'
+		        else '60대 이상'
+			end as ageGroup
+		from
+			(SELECT
+				l.log_id,
+				l.log_regdt,
+				((left(now(), 4)+0)-(left(m.birth, 4)+0)) as age
+			FROM
+				t_login_log as l, t_member as m
+			where
+				l.log_type=2
+				and l.log_id = m.id
+				<if test="siteCode != 'all'">AND log_site = #{siteCode}</if>
+		        <if test="cntOption == 'DAY'">and date_format(l.log_regdt, '%Y-%m-%d')</if>
+				<if test="cntOption == 'MONTH'">and date_format(l.log_regdt, '%Y-%m')</if>
+				<if test="cntOption == 'YEAR'">and date_format(l.log_regdt, '%Y')</if>
+				BETWEEN  #{startDate} and #{endDate}
+		        ) innerTable
+		 group by ageGroup
+	</select>
+
+		<!--
+	 * SNS 통계정보 저장
+	 * @param itgMap
+	-->
+	<insert id="mngrSnsCountInsert" parameterType="itgMap">
+		/* mngrSnsCountInsert */
+		insert into T_COUNT_SNS(
+			cs_idx,
+			cnt_name,
+			cnt_url,
+			cnt_sm_name,
+			cnt_option,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			<!-- #{cntCount}, -->
+			site_code,
+			etc
+		 ) values(
+			T_COUNT_SNS_SEQ.nextval,
+			#{cntName},
+			#{cntUrl},
+			#{cntSmName},
+			#{cntOption},
+			#{cntYear},
+			#{cntMonth},
+			#{cntDay},
+			<!-- #{cntCount}, -->
+			#{siteCode},
+			#{etc}
+		)
+	</insert>
+
+		<!--
+	 * SNS 통계정보 업데이트
+	 * @param itgMap
+	-->
+	<update id="mngrSnsCountUpdate" parameterType="itgMap">
+		/* mngrSnsCountUpdate */
+		update
+			T_COUNT_SNS
+		set
+			cnt_count = cnt_count+1
+		where
+			cnt_name = #{cntName}
+			AND cnt_url = #{cntUrl}
+			AND cnt_sm_name = #{cntSmName}
+			AND cnt_option = #{cntOption}
+			AND cnt_year = #{cntYear}
+			AND cnt_month = #{cntMonth}
+			AND cnt_day = #{cntDay}
+			AND site_code = #{siteCode}
+	</update>
+
+		<!--
+	 * SNS 통계정보 리스트
+	 * @param itgMap
+	-->
+	<select id="selectMngrSnsCountList" resultType="itgMap" parameterType="mngrCountVO">
+	/* selectMngrSnsCountList */
+	SELECT
+		A.cs_idx,
+		A.cnt_name,
+		A.cnt_url,
+		A.cnt_sm_name,
+		A.cnt_option,
+		A.cnt_year,
+		A.cnt_month,
+		A.cnt_day,
+		A.cnt_count,
+		A.etc,
+		B.menu_pfullname as menu_full_name,
+		B.menu_name
+	FROM (
+		SELECT
+			max(t.cs_idx) as cs_idx,
+			cnt_name,
+			cnt_url,
+			cnt_sm_name,
+			cnt_option,
+			max(cnt_year) as cnt_year,
+			max(cnt_month) as cnt_month,
+			max(cnt_day) as cnt_day,
+			sum(cnt_count) as cnt_count,
+			etc
+		FROM  T_COUNT_SNS t, (select cs_idx, etc r from T_COUNT_SNS) retc
+		WHERE t.cs_idx = retc.cs_idx
+		  and cnt_option = #{cntOption}
+		  <if test="cntOption != 'TOTAL' and cntOption != ''">
+		  and retc.r BETWEEN
+			<if test="cntOption == 'DAY'">
+				to_date(#{startDate}, 'yyyy-MM-dd') and to_date(#{endDate}, 'yyyy-MM-dd')
+			</if>
+			<if test="cntOption == 'MONTH'">
+				to_date(#{startDate}, 'yyyy-MM') and to_date(#{endDate}, 'yyyy-MM')
+			</if>
+			<if test="cntOption == 'YEAR'">
+				to_date(#{startDate}, 'yyyy') and to_date(#{endDate}, 'yyyy')
+			</if>
+		  </if>
+		<if test="siteCode != 'all' and siteCode != ''">
+		and site_code = #{siteCode}
+		</if>
+		GROUP BY cnt_name, cnt_url, cnt_sm_name, cnt_option, etc
+		) A
+	LEFT JOIN T_MENU B on A.cnt_name = B.menu_code
+	WHERE A.cs_idx IS NOT NULL
+	ORDER BY cnt_count DESC
+	</select>
+
+		<!--
+	 * 팝업 통계정보 저장
+	 * @param itgMap
+	-->
+	<insert id="mngrPopupCountInsert" parameterType="itgMap">
+		/* mngrPopupCountInsert */
+		insert into T_COUNT_POPUP(
+			cp_idx,
+			pop_idx,
+			cnt_option,
+			cnt_year,
+			cnt_month,
+			cnt_day,
+			<!-- #{cnt_count}, -->
+			site_code,
+			etc
+		 ) values(
+			T_COUNT_POPUP_SEQ.nextval,
+			#{popIdx},
+			#{cntOption},
+			#{cntYear},
+			#{cntMonth},
+			#{cntDay},
+			<!-- #{cntCount}, -->
+			#{siteCode},
+			#{etc}
+		)
+	</insert>
+
+		<!--
+	 * 팝업 통계정보 업데이트
+	 * @param itgMap
+	-->
+	<update id="mngrPopupCountUpdate" parameterType="itgMap">
+		/* mngrPopupCountUpdate */
+		update
+			T_COUNT_POPUP
+		set
+			cnt_count = cnt_count+1
+		where
+			pop_idx = #{popIdx}
+			AND cnt_option = #{cntOption}
+			AND cnt_year = #{cntYear}
+			AND cnt_month = #{cntMonth}
+			AND cnt_day = #{cntDay}
+			AND site_code = #{siteCode}
+	</update>
+
+		<!--
+	 * 팝업 통계정보 리스트
+	 * @param mngrCountVO
+	-->
+	<select id="selectMngrPopupCountList" resultType="itgMap" parameterType="mngrCountVO">
+	/* selectMngrPopupCountList */
+	SELECT
+		A.cp_idx,
+		A.pop_idx,
+		A.cnt_option,
+		A.cnt_year,
+		A.cnt_month,
+		A.cnt_day,
+		A.cnt_count,
+		A.etc,
+		B.popup_type,
+		B.popup_title
+	FROM (
+		SELECT
+			max(p.cp_idx) as cp_idx,
+			pop_idx,
+			cnt_option,
+			max(cnt_year) as cnt_year,
+			max(cnt_month) as cnt_month,
+			max(cnt_day) as cnt_day,
+			sum(cnt_count) as cnt_count,
+			etc
+		FROM  T_COUNT_POPUP p, (select cp_idx, etc r from T_COUNT_POPUP) retc
+		WHERE p.cp_idx = retc.cp_idx
+        and cnt_option = #{cntOption}
+		 <if test="cntOption != 'TOTAL' and cntOption != ''">
+            and retc.r BETWEEN
+            <if test="cntOption == 'DAY'">
+				to_date(#{startDate}, 'yyyy-MM-dd') and to_date(#{endDate}, 'yyyy-MM-dd')
+			</if>
+			<if test="cntOption == 'MONTH'">
+				to_date(#{startDate}, 'yyyy-MM') and to_date(#{endDate}, 'yyyy-MM')
+			</if>
+			<if test="cntOption == 'YEAR'">
+				to_date(#{startDate}, 'yyyy') and to_date(#{endDate}, 'yyyy')
+			</if>
+			<if test="siteCode != 'all' and siteCode != ''">
+			and site_code = #{siteCode}
+			</if>
+		 </if>
+		GROUP BY pop_idx, cnt_option, etc
+		) A
+	LEFT JOIN T_POPUP B on A.pop_idx = B.popup_idx
+	<if test="popupType != 'all' and popupType != ''">
+		WHERE popup_type = #{popupType}
+	</if>
+	ORDER BY cnt_count DESC
+	</select>
+
+</mapper>

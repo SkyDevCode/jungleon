@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.program.service.impl.MngrProgramMapper">
+
+	<resultMap id="program" type="egovframework.itgcms.core.program.service.MngrProgramVO">
+		<result property="progIdx" column="prog_idx" />
+		<result property="progName" column="prog_name" />
+		<result property="progUserurl" column="prog_userurl" />
+		<result property="progMngrurl" column="prog_mngrurl" />
+	</resultMap>
+
+	<sql id="pageBefore">
+		SELECT * FROM
+		(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+		<if test="schStr != null and schStr != ''">
+			<choose>
+				<when test="schFld == '1'.toString()">
+					AND a.prog_name LIKE '%' || #{schStr} || '%'
+				</when>
+				<when test="schFld == '2'.toString()">
+					AND a.prog_userurl LIKE '%' || #{schStr} || '%'
+				</when>
+				<when test="schFld == '3'.toString()">
+					AND a.prog_mngrurl LIKE '%' || #{schStr} || '%'
+				</when>
+				<otherwise>
+					AND (
+					a.prog_name LIKE '%' || #{schStr} || '%'
+					OR
+					a.prog_userurl LIKE '%' || #{schStr} || '%'
+					OR
+					a.prog_mngrurl LIKE '%' || #{schStr} || '%'
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectMngrProgramList" parameterType="egovframework.itgcms.core.program.service.MngrProgramSearchVO" resultMap="program">
+		<include refid="pageBefore" />
+		SELECT
+		a.prog_idx,
+		a.prog_name,
+		a.prog_userurl,
+		a.prog_mngrurl
+		FROM t_program a
+		WHERE 1=1
+		<include refid="listWhere" />
+		<choose>
+			<when test="ordFld != '' and ordBy != ''">
+				ORDER BY
+					<choose>
+						<when test="ordFld == 'name'"> a.prog_name </when>
+						<when test="ordFld == 'user'"> a.prog_userurl </when>
+						<when test="ordFld == 'mngr'"> a.prog_mngrurl </when>
+					</choose>
+				${ordBy}
+			</when>
+			<otherwise>
+				ORDER BY a.prog_name
+			</otherwise>
+		</choose>
+		<include refid="pageAfter" />
+	</select>
+
+	<select id="mngrProgramListTotCnt" parameterType="egovframework.itgcms.core.program.service.MngrProgramSearchVO" resultType="int">
+		SELECT COUNT(*) totcnt
+		FROM t_program a
+		WHERE 1=1
+		<include refid="listWhere" />
+	</select>
+
+	<insert id="insertMngrProgramProc" parameterType="egovframework.itgcms.core.program.service.MngrProgramVO">
+		<selectKey resultType="String" keyProperty="progIdx" order="BEFORE">
+			SELECT T_PROGRAM_SEQ.nextval FROM DUAL
+		</selectKey>
+		INSERT INTO t_program(
+		prog_idx,
+		prog_name,
+		prog_userurl,
+		prog_mngrurl
+		)VALUES(
+		#{progIdx},
+		#{progName},
+		#{progUserurl},
+		#{progMngrurl}
+		)
+	</insert>
+
+	<select id="selectMngrProgramView" parameterType="egovframework.itgcms.core.program.service.MngrProgramSearchVO" resultMap="program">
+		SELECT
+		a.prog_idx,
+		a.prog_name,
+		a.prog_userurl,
+		a.prog_mngrurl
+		FROM t_program a
+		WHERE
+		a.prog_idx = #{id}
+	</select>
+
+	<update id="updateMngrProgramProc" parameterType="egovframework.itgcms.core.program.service.MngrProgramVO">
+		UPDATE t_program SET
+		prog_name = #{progName},
+		prog_userurl = #{progUserurl},
+		prog_mngrurl = #{progMngrurl}
+		WHERE
+		prog_idx = #{id}
+	</update>
+
+	<delete id="deleteMngrProgramProc" parameterType="egovframework.itgcms.core.program.service.MngrProgramVO">
+		DELETE FROM t_program
+		WHERE
+		prog_idx = #{id}
+	</delete>
+
+	<select id="mngrProgramListAjax" resultMap="program">
+		SELECT
+		a.prog_idx,
+		a.prog_name,
+		a.prog_userurl,
+		a.prog_mngrurl
+		FROM t_program a
+		ORDER BY a.prog_name
+	</select>
+
+</mapper>

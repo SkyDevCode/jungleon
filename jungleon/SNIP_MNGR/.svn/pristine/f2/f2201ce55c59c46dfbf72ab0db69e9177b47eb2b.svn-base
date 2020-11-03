@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/**
+ * @Class Name : custom.tld
+ * @Description : 커스텀 태그
+ *   수정일           수정자                   수정내용
+ *  ================================================
+ *  2014.02.14.       pi                  최초 생성
+ *
+ * @USE : <cct:codeTag pcode="schBdcode" tagType="select" tagName="tname" selectedValue="" tagTitle="구분" className="form-control input-sm" useNullOpt="N" addOptData="파라메터명,파라메터컬럼"/>
+ *
+ * useNullOpt : 전체선택 등 옵션, 기본값 : N, N이 아닌 다른 문자열이 들어갈 경우 해당 문자열이 첫번째 옵션으로 출력됨.
+ * addOptData : 셀렉트 옵션리스트에 추가로 생성될 파라메터이름 및 컬럼, 사용가능 컬럼(etc1,etc2,exp1)
+ 				예) 코드관리의 etc1의 값을 data라는 파라메터명으로 사용하고 싶을 경우 data,etc1
+ */
+  -->
+<taglib xmlns="http://java.sun.com/xml/ns/javaee"
+    	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd"
+    	version="2.1">
+
+ <tlib-version>1.2</tlib-version>
+ <uri>cct</uri>
+  <tag>
+	<description>코드관리 코드 리스트 태그(select, checkbox, radio) 만들기</description>
+	<name>codeTag</name>
+	<tag-class>egovframework.itgcms.util.CreateCodeTag</tag-class>
+	<body-content>empty</body-content>
+
+	<attribute>
+		<name>pcode</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>tagType</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>tagName</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>selectedValue</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>tagTitle</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>className</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>tagId</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>useNullOpt</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>addOptData</name>
+		<required>false</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+</tag>
+<tag>
+	<description>코드관리 코드 이름 가져오기</description>
+	<name>getCodeName</name>
+	<tag-class>egovframework.itgcms.util.GetCode</tag-class>
+	<body-content>empty</body-content>
+
+	<attribute>
+		<name>code</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+</tag>
+</taglib>

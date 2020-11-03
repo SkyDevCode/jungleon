@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+/**
+ * @Class Name : orderby.tld
+ * @Description : 목록테이블 필드 정렬
+ *   수정일           수정자                   수정내용
+ *  ================================================
+ *  2014.02.14.       pi                  최초 생성
+ *  
+ */
+  -->
+<taglib xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee web-jsptaglibrary_2_1.xsd"
+    version="2.1">
+     
+ <tlib-version>1.2</tlib-version>
+ <uri>ora</uri>
+  <tag>
+	<description>게시판 목록 제목 클릭 정렬 설정</description>
+	<name>setOrderBy</name>
+	<tag-class>egovframework.itgcms.util.CustomTagOrderBy</tag-class>
+	<body-content>empty</body-content>
+	<attribute>
+		<name>fieldValue</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>fieldText</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	
+	
+	<attribute>
+		<name>schOrderFld</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+	<attribute>
+		<name>schOrderBy</name>
+		<required>true</required>
+		<rtexprvalue>true</rtexprvalue>
+	</attribute>
+</tag>
+</taglib>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<decorators defaultdir="/WEB-INF/sitemesh">
+	<excludes>
+		<pattern>/index.jsp</pattern>
+		<pattern>/excel*</pattern>
+		<pattern>*/common/*</pattern>
+		<pattern>*down*</pattern>
+		<pattern>*_popup*</pattern>
+		<pattern>*ajax*</pattern>
+		<pattern>/_mngr_/main/login*</pattern>
+	</excludes>
+
+	<!-- 사용자 레이아웃 -->
+	<decorator name="user-main" page="user/main.jsp">
+		<pattern>*/main/index.do</pattern>
+	</decorator>
+
+	<decorator name="user-sub" page="user/sub.jsp">
+		<pattern>*/contents/*</pattern>
+		<pattern>*/contents/**/*</pattern>
+	</decorator>
+	
+	<decorator name="user-popwin" page="user/pop_win.jsp">
+		<pattern>*/popContents*</pattern>
+	</decorator>
+
+</decorators>

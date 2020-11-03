@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="egovframework.itgcms.core.member.service.impl.MemberMapper">
+
+	<resultMap id="mngrMemberListMap" type="memberVO">
+		<id property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="nickName" column="nickname"/>
+		<result property="pass" column="pass"/>
+		<result property="passDt" column="passdt"/>
+		<result property="passTryCnt" column="passtrycnt"/>
+		<result property="phone" column="phone"/>
+		<result property="mobile" column="mobile"/>
+		<result property="email" column="email"/>
+		<result property="fax" column="fax"/>
+		<result property="oldPost" column="oldpost"/>
+		<result property="oldAddr1" column="oldaddr1"/>
+		<result property="oldAddr2" column="oldaddr2"/>
+		<result property="newPost" column="newpost"/>
+		<result property="newAddr1" column="newaddr1"/>
+		<result property="newAddr2" column="newaddr2"/>
+		<result property="birth" column="birth"/>
+		<result property="sex" column="sex"/>
+		<result property="type" column="type"/>
+		<result property="group" column="group"/>
+		<result property="code" column="code"/>
+		<result property="loginIp" column="loginip"/>
+		<result property="loginDt" column="loginDt"/>
+		<result property="loginCountryCd" column="logincountrycd"/>
+		<result property="loginCountryName" column="logincountryname"/>
+		<result property="loginBrowser" column="loginbrowser"/>
+		<result property="loginBrowserIcon" column="loginbrowsericon"/>
+		<result property="loginOs" column="loginos"/>
+		<result property="loginOsIcon" column="loginosicon"/>
+		<result property="regId" column="regid"/>
+		<result property="regIp" column="regip"/>
+		<result property="regDt" column="regdt"/>
+		<result property="regCountryCd" column="regcountrycd"/>
+		<result property="regCountryName" column="regcountryname"/>
+		<result property="regBrowser" column="regbrowser"/>
+		<result property="regBrowserIcon" column="regbrowsericon"/>
+		<result property="regOs" column="regos"/>
+		<result property="regOsIcon" column="regosicon"/>
+		<result property="updId" column="updid"/>
+		<result property="updIp" column="updip"/>
+		<result property="updDt" column="upddt"/>
+		<result property="status" column="status"/>
+		<result property="delId" column="delid"/>
+		<result property="delIp" column="delip"/>
+		<result property="delDt" column="deldt"/>
+		<result property="cutoffDt" column="cutoffdt"/>
+		<result property="cutoffReason" column="cutoffreason"/>
+		<result property="smsYn" column="smsyn"/>
+		<result property="emailYn" column="emailyn"/>
+		<result property="infoOpenYn" column="infoopenyn"/>
+		<result property="regSiteCode" column="regsitecode"/>
+		<result property="unionMem" column="unionMem"/>
+	</resultMap>
+
+	<sql id="listWhere">
+			AND a.delyn = 'N'
+			<if test="schFldSub != null and schFldSub != ''">
+				AND a.status = #{schFldSub}
+			</if>
+			<if test="schStr != null and schStr != ''">
+				<choose>
+					<when test="schFld == '1'.toString()">
+						AND a.id like '%' + #{schStr} + '%'
+					</when>
+					<when test="schFld == '2'.toString()">
+						AND	a.name like '%' + #{schStr} + '%'
+					</when>
+					<when test="schFld == '3'.toString()">
+						AND	a.nickname like '%' + #{schStr} + '%'
+					</when>
+					<when test="schFld == '4'.toString()">
+						AND	b.c_name like '%' + #{schStr} + '%'
+					</when>
+					<otherwise>
+						AND	(
+							a.id like '%' + #{schStr} + '%'
+							or
+							b.c_name like '%' + #{schStr} + '%'
+							or
+							a.name like '%' + #{schStr} + '%'
+							)
+					</otherwise>
+				</choose>
+			</if>
+	</sql>
+
+	<sql id="memberColumns">
+		a.id, a.name, a.nickname, a.pass, a.passdt, a.passtrycnt, a.phone, a.mobile, a.email, a.fax,
+		a.oldpost, a.oldaddr1, a.oldaddr2, a.newpost, a.newaddr1, a.newaddr2,
+		a.birth, a.sex, a.type, a.[group], a.code, a.loginip, a.logindt, a.logincountrycd, a.logincountryname,
+		a.loginbrowser, a.loginbrowsericon, a.loginos, a.loginosicon, a.regid, a.regip, a.regdt, a.regcountrycd,
+		a.regcountryname, a.regbrowser, a.regbrowsericon, a.regos, a.regosicon, a.updid, a.updip, a.updDt, a.status,
+		a.delId, a.delIp, a.delDt, a.cutoffdt, a.cutoffreason, a.smsyn, a.emailyn, a.infoopenyn, a.regsitecode, a.unionmem, a.etc1, a.position
+	</sql>
+
+	<select id="selectMemberList" resultMap="mngrMemberListMap" parameterType="memberVO">
+		/* selectMemberList */
+	select * from (
+		select
+			<if test="schExcel != 'Y'.toString()">
+			ceiling(row_number() over (
+			<choose>
+				<when test="ordFld != '' and ordBy != ''">
+					order by
+					<choose>
+						<when test="ordFld == 'id'"> a.id </when>
+						<when test="ordFld == 'name'"> a.name </when>
+						<when test="ordFld == 'regdt'"> a.regdt </when>
+						<when test="ordFld == 'status'"> a.status </when>
+					</choose>
+					${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+				</when>
+				<otherwise>
+					order by a.regdt desc
+				</otherwise>
+			</choose>
+			) / cast(#{recordCountPerPage} as float)) AS page,
+	        </if>
+			<include refid="memberColumns" />
+		from
+			t_member as a
+			left join t_code b on a.[group] = b.c_code
+			where 1=1
+			<include refid="listWhere" />
+	) tb
+		<if test="schExcel != 'Y'.toString()">
+	where
+		page = (cast(#{firstIndex} as float) / cast(#{recordCountPerPage} as float)) + 1
+        </if>
+	</select>
+
+	<select id="selectMemberListTotCnt" resultType="int" parameterType="memberVO">
+		/* selectMemberListTotCnt */
+		select
+			count(*) as cnt
+		from
+			t_member as a
+			left join t_code b on a.[group] = b.c_code
+			<include refid="listWhere" />
+	</select>
+
+	<select id="selectMember" resultMap="mngrMemberListMap" parameterType="memberVO">
+		/* selectMember */
+		select
+			<include refid="memberColumns" />
+		from
+			t_member as a
+		<trim prefix="where" prefixOverrides="and |or ">
+			<if test="id != null and id != ''">
+				and a.id = #{id}
+			</if>
+			<if test="nickName != null and nickName != ''">
+				and a.nickname = #{nickName}
+			</if>
+			<if test="pass != null and pass != ''">
+				and a.pass = #{pass}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<if test="email != null and email != ''">
+				and a.email = #{email}
+			</if>
+		</trim>
+	</select>
+
+	<select id="selectMemberCnt" resultType="int" parameterType="memberVO">
+		/* selectMemberCnt */
+		select
+			count(1) as cnt
+		from
+			t_member
+		<trim prefix="where" prefixOverrides="and |or ">
+			<if test="id != null and id != ''">
+				and id = #{id}
+			</if>
+			<if test="nickName != null and nickName != ''">
+				and nickname = #{nickName}
+			</if>
+			<if test="pass != null and pass != ''">
+				and pass = #{pass}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+		</trim>
+	</select>
+
+	<select id="selectMemberUnionManagerById" resultType="int">
+		/* selectMemberUnionManagerById */
+		select
+			count(d.id)
+		from (
+			select id as id from t_member where id=#{id}
+				union
+			select mng_id as id from t_manager where mng_id=#{id}
+		) as d;
+	</select>
+
+	<insert id="insertMemberRegist" parameterType="memberVO">
+		/* insertMemberRegist */
+		insert into t_member(
+			id, name, nickname, pass, passtrycnt, phone, mobile, email, fax,
+			oldpost, oldaddr1, oldaddr2, newpost, newaddr1, newaddr2,
+			birth, sex, type, [group], code, regid, regip, regdt, regcountrycd,
+			regcountryname, regbrowser, regbrowsericon, regos, regosicon, status,
+			smsyn, emailyn, infoopenyn, regsitecode, unionmem, etc1, comem_idx, position,delyn
+		)
+		values(
+			#{id}, #{name}, #{nickName}, #{pass}, 0, #{phone}, #{mobile}, #{email}, #{fax},
+			#{oldPost}, #{oldAddr1}, #{oldAddr2}, #{newPost}, #{newAddr1}, #{newAddr2},
+			#{birth}, #{sex}, #{type}, #{group}, #{code}, #{regId},	#{regIp}, getdate(), #{regCountryCd},
+			#{regCountryName}, #{regBrowser}, #{regBrowserIcon}, #{regOs}, #{regOsIcon}, #{status},
+			#{smsYn}, #{emailYn}, #{infoOpenYn}, #{regSiteCode}, #{unionMem}, #{etc1}, #{comemIdx}, #{position},'N'
+		)
+	</insert>
+
+	<insert id="insertMemberMinRegist" parameterType="memberVO">
+		/* insertMemberMinRegist */
+		insert into t_member(
+			id
+		)
+		values(
+			#{id}
+		)
+	</insert>
+
+	<select id="selectMemberView" resultMap="mngrMemberListMap" parameterType="memberVO">
+		/* selectMemberView */
+		select
+			<include refid="memberColumns" />
+		from
+			t_member as a
+		where
+			a.id = #{id}
+	</select>
+
+	<select id="selectMemberById" resultMap="mngrMemberListMap" parameterType="memberVO">
+		/* selectMemberById */
+		select
+			<include refid="memberColumns" />
+		from
+			t_member as a
+		where
+			a.id = #{id}
+			AND a.delyn = 'N'
+	</select>
+
+	<update id="updateMemberInitPass" parameterType="memberVO">
+		/* updateMemberInitPass */
+		update
+			t_member
+		set
+			pass = #{pass},
+			passtrycnt = 0,
+			passdt = getdate(),
+			updid = #{updId},
+			updip = #{updIp}
+		where
+			id = #{id}
+	</update>
+
+	<update id="deleteMemberProc" parameterType="memberVO">
+		/* deleteMemberProc */
+		update t_member
+		set
+			delyn = 'Y',
+			delid = #{delId},
+			delip = #{delIp},
+			deldt = getdate()
+		where
+			id = #{id}
+	</update>
+
+	<update id="deleteChkMemberProc" parameterType="memberVO">
+		/* deleteChkMemberProc */
+		update t_member
+		set
+			delyn = 'Y',
+			delid = #{delId},
+			delip = #{delIp},
+			deldt = getdate()
+		where
+			id in
+			<foreach item="item" index="index" open="(" close=")" separator="," collection="chkId">
+				#{item}
+			</foreach>
+	</update>
+
+	<update id="updateMember" parameterType="memberVO">
+		/* updateMember */
+		update t_member
+		set
+			nickname = #{nickName}, phone = #{phone}, mobile = #{mobile}, email = #{email},
+			fax = #{fax}, oldpost = #{oldPost}, oldaddr1 = #{oldAddr1}, oldaddr2 = #{oldAddr2},
+			newpost = #{newPost}, newaddr1 = #{newAddr1}, newaddr2 = #{newAddr2},
+			birth = #{birth}, sex = #{sex}, type = #{type}, [group] = #{group}, code = #{code},
+			smsyn = #{smsYn}, emailyn = #{emailYn}, infoopenyn = #{infoOpenYn}, position = #{position},
+			updid = #{updId}, updip = #{updIp}, upddt = getdate()
+			<choose>
+				<when test="status == 'mem_cutoff'.toString()">
+					,status = #{status}, cutoffreason = #{cutoffReason}, cutoffDt = getdate()
+				</when>
+				<otherwise>
+					,status = #{status}, cutoffreason = null, cutoffDt = null, passtrycnt = 0
+				</otherwise>
+			</choose>
+		where
+			id = #{id}
+	</update>
+
+	<update id="updatePassTryCnt" parameterType="string">
+		/* updatePassTryCnt */
+		update t_member
+		set
+			passtrycnt = passtrycnt + 1
+		where id = #{id}
+	</update>
+
+	<update id="updateMemberLogin" parameterType="memberVO">
+		/* updateMemberLogin */
+		update t_member
+		set
+			loginip = #{loginIp}, logindt = getdate(), logincountrycd = #{loginCountryCd}, logincountryname = #{loginCountryName},
+			loginbrowser = #{loginBrowser}, loginbrowsericon = #{loginBrowserIcon}, loginos = #{loginOs}, loginosicon = #{loginOsIcon},
+			passtrycnt = 0
+		where
+			id = #{id}
+	</update>
+
+	<update id="updateMemberCufoff" parameterType="memberVO">
+		/* updateMemberCufoff */
+		update t_member
+		set
+			status = #{status}, cutoffdt = getdate(), cutoffreason = #{cutoffReason}
+		where
+			id = #{id}
+	</update>
+
+    <select id="getMemberRegistCount" resultType="int">
+         select count(*) from t_member where convert(char(10), regdt, 23) = convert(char(10), getdate(), 23)
+    </select>
+
+    <update id="updateMemberPassword">
+    	UPDATE t_member
+    	SET
+    		pass=#{pass},
+    		passtrycnt=0,
+    		updid = #{updId},
+    		upddt=getdate()
+    	WHERE
+    		id=#{id}
+    </update>
+
+</mapper>

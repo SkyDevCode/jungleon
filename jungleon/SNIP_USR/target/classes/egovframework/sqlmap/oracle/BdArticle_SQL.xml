@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.board.web.service.impl.BdArticleMapper">
+
+	<insert id="insertBdArticle" parameterType="itgMap">
+	/** [BdArticle_SQL.xml][egovframework.itgcms.module.board.web.service.impl.BdArticleMapper.insertBdArticle][기사제목 등록][hsk1218] **/
+	INSERT INTO t_board_article
+        (ba_idx
+  		,ar_idx
+        ,ar_subject
+        ,ar_content
+        )
+    VALUES (
+		  #{baIdx}
+		, #{arIdx}
+		, #{arSubject}
+		, #{arContent}
+	 )
+	</insert>
+
+	<select id="selectBdArticle" >
+	/** [BdArticle_SQL.xml][egovframework.itgcms.module.board.web.service.impl.BdArticleMapper.selectBdArticle][기사제목 조회][hsk1218] **/
+	SELECT
+		  AR_SUBJECT
+		,
+
+
+	FROM
+
+
+	</select>
+</mapper>

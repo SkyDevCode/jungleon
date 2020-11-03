@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.organization.service.impl.OrganizationMapper">
+
+	<resultMap id="code" type="egovframework.itgcms.core.code.service.MngrCodeVO">
+		<result property="ccode" column="c_code" />
+		<result property="cname" column="c_name" />
+		<result property="cpcode" column="c_pcode" />
+		<result property="cdepth" column="c_depth" />
+		<result property="corder" column="c_order" />
+		<result property="cauth" column="c_auth" />
+		<result property="etc1" column="etc1" />
+		<result property="etc2" column="etc2" />
+		<result property="exp1" column="exp1" />
+		<result property="regdt" column="regdt" />
+		<result property="upddt" column="upddt" />
+		<result property="deldt" column="deldt" />
+		<result property="regmemid" column="regmemid" />
+		<result property="updmemid" column="updmemid" />
+		<result property="delmemid" column="delmemid" />
+		<result property="defaultyn" column="defaultyn" />
+		<result property="delyn" column="delyn" />
+		<result property="subtree" column="subtree" />
+	</resultMap>
+
+
+	<resultMap id="recursiveCode" extends="code" type="egovframework.itgcms.core.code.service.MngrCodeVO">
+		<id property="id" column="c_code" /><!-- 필수 설정 primary key -->
+		<association property="childCodeList" column="{id=c_code}" select="mngrManagerCodeListRecursive" />
+	</resultMap>
+
+	<!-- 부서 리스트 조회 (전체 depth) -->
+    <select id="mngrManagerCodeListRecursive" resultMap="recursiveCode">
+		/***** mngrManagerCodeListRecursive *****/
+		select
+		a.c_code,
+		a.c_name,
+		a.etc1,
+		a.etc2,
+		a.exp1,
+		a.c_depth,
+		a.c_pcode,
+		a.c_order,
+		<!-- 컬럼추가 -->
+		(select count(*) from t_code b where b.c_pcode = a.c_code and b.delyn = 'N') subtree
+		from t_code a
+		where a.delyn = 'N'
+		<if test="id != null and id != ''">
+			and c_pcode = #{id}
+		</if>
+		order by a.c_depth, a.c_order
+	</select>
+
+	<!-- 조직도설정 조회 -->
+ 	<select id="selectMngrOrganChartInfo" resultType="itgMap">
+		/*selectMngrOrganChartInfo */
+		SELECT
+		TOP_CODE,
+		COLUMN_CNT,
+		COLUMN_NM1,
+		COLUMN_NM2,
+		COLUMN_NM3
+		FROM T_ORGAN_CHART
+		where OR_IDX = 1
+	</select>
+
+	<!-- 조직도설정  수정 -->
+	<update id="updateMngrOrganChartInfoProc" parameterType="itgMap">
+		/* updateMngrOrganChartInfoProc */
+		UPDATE T_ORGAN_CHART
+		<trim prefix="SET" suffixOverrides=",">
+		TOP_CODE =#{topCode},
+		COLUMN_CNT =#{columnCnt},
+		COLUMN_NM1 =#{columnNm1},
+		COLUMN_NM2 =#{columnNm2},
+		COLUMN_NM3 =#{columnNm3},
+		</trim>
+		where OR_IDX = 1
+	</update>
+
+ 	<!-- 조직도설정 등록 -->
+	<insert id="insertMngrOrganChartInfoProc" parameterType="itgMap">
+		/* insertMngrOrganChartInfoProc */
+		INSERT INTO T_ORGAN_CHART (
+		OR_IDX,
+		TOP_CODE,
+		COLUMN_CNT,
+		COLUMN_NM1,
+		COLUMN_NM2,
+		COLUMN_NM3
+		)VALUES(
+		1,
+		#{topCode},
+		#{columnCnt},
+		#{columnNm1},
+		#{columnNm2},
+		#{columnNm3}
+		)
+	</insert>
+
+</mapper>
