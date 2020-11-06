@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.socialmedia.service.impl.SocialmediaMapper">
+
+	<resultMap type="socialMediaKeyVO" id="resultVO">
+		<result property="smkeyIdx" column="smkey_idx"/>
+		<result property="smName" column="sm_name"/>
+		<result property="smAppkey" column="sm_appkey"/>
+		<result property="smSecretkey" column="sm_secretkey"/>
+		<result property="accountId" column="account_id"/>
+		<result property="useyn" column="useyn"/>
+		<result property="regmemid" column="regmemid"/>
+		<result property="updmemid" column="updmemid"/>
+		<result property="delmemid" column="delmemid"/>
+		<result property="regdt" column="regdt"/>
+		<result property="upddt" column="upddt"/>
+		<result property="deldt" column="deldt"/>
+		<result property="etc1" column="sm_etc1"/>
+		<result property="etc2" column="sm_etc2"/>
+		<result property="exp" column="exp1"/>
+		<result property="siteCode" column="site_code"/>
+	</resultMap>
+
+	<select id="selectSocialMediaKeys" parameterType="itgMap" resultType="itgMap">
+	/* selectSocialMediaKeys */
+		SELECT
+			smkey_idx,
+			sm_name,
+		    sm_appkey,
+		    sm_secretkey,
+		    account_id,
+		    useyn,
+		    sm_etc1 as etc1,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    regdt,
+		    upddt,
+		    deldt,
+		    exp1 as exp
+		FROM t_smkeys
+		WHERE delyn='N'
+		AND SITE_CODE = #{siteCode}
+	</select>
+
+	<select id="getSocialMediaKey" resultMap="resultVO">
+	/* getSocialMediaKey */
+		<choose>
+			<when test="siteCode != null and siteCode != ''">
+				SELECT
+					k.sm_name,
+				    k.sm_appkey,
+				    k.sm_secretkey,
+				    k.useyn,
+				    k.sm_etc1,
+				    t.sm_etc2,
+				    k.regmemid,
+				    k.updmemid,
+				    k.delmemid,
+				    k.regdt,
+				    k.upddt,
+				    k.deldt,
+					t.site_code,
+				    t.sm_accesstoken,
+				    t.sm_accessible,
+				    t.sm_userid,
+				    t.sm_issueDate
+				FROM t_smaccesstoken as t, t_smkeys as k
+				WHERE
+					k.sm_name=#{smName}
+					and k.sm_name=t.sm_name
+					and t.site_code = #{siteCode}
+			</when>
+			<otherwise>
+				SELECT
+					sm_name,
+				    sm_appkey,
+				    sm_secretkey,
+				    useyn,
+				    sm_etc1,
+				    regmemid,
+				    updmemid,
+				    delmemid,
+				    regdt,
+				    upddt,
+				    deldt
+				FROM t_smkeys
+				WHERE
+					sm_name = #{smName}
+			</otherwise>
+		</choose>
+
+	</select>
+
+	<update id="updateSocialmediaKey" parameterType="socialMediaKeyVO">
+	/* updateSocialmediaKey */
+		UPDATE t_smkeys
+		SET
+			sm_appkey = #{smAppkey},
+			sm_secretkey = #{smSecretkey},
+			useyn = #{useyn},
+			updmemid = #{updmemid},
+			delmemid = "",
+			upddt = NOW(),
+			deldt = NULL
+			<if test="etc1 != null and etc1 != ''">
+				, sm_etc1 = #{etc1}
+			</if>
+			<if test="etc2 != null and etc2 != ''">
+				, sm_etc2 = #{etc2}
+			</if>
+		WHERE sm_name = #{smName}
+	</update>
+
+	<select id="getAccessToken" resultType="String" parameterType="socialMediaKeyVO">
+	/* getAccessToken */
+		SELECT
+			sm_accesstoken
+		FROM
+			t_smaccesstoken
+		WHERE
+			sm_name = #{smName}
+			and site_code = #{siteCode}
+	</select>
+
+	<update id="updateAccessToken" parameterType="socialMediaKeyVO">
+	/* updateAccessToken */
+		UPDATE t_smaccesstoken
+		SET
+			sm_accesstoken = #{smAccesstoken},
+			sm_userId = #{smUserid},
+			sm_issueDate = NOW()
+		WHERE
+			sm_name = #{smName}
+			AND site_code =#{siteCode}
+	</update>
+
+	<insert id="insertAccessToken" parameterType="socialMediaKeyVO">
+	/* insertAccessToken */
+		INSERT INTO
+		t_smaccesstoken
+			(
+				site_code,
+				sm_name,
+				sm_accesstoken,
+				sm_accessible,
+				sm_userid,
+				sm_issueDate
+			)
+		VALUES
+			(
+				#{siteCode},
+				#{smName},
+				#{smAccesstoken},
+				#{smAccessible},
+				#{smUserid},
+				NOW()
+			)
+	</insert>
+
+
+	<update id="markNoUse" parameterType="socialMediaKeyVO">
+	/* markNoUse */
+		UPDATE t_smkeys
+		SET
+			useyn = #{useyn},
+			delmemid = #{delmemid},
+			deldt = NOW()
+		WHERE sm_name = #{smName}
+	</update>
+
+	<update id="markAccessible" parameterType="socialMediaKeyVO">
+	/* markAccessible */
+		UPDATE t_smaccesstoken
+		SET
+			sm_accessible = #{smAccessible}
+			<if test="smName == 'naver'">
+				, sm_etc2 = #{etc2}
+			</if>
+		WHERE
+			site_code = #{siteCode}
+			AND sm_name = #{smName}
+	</update>
+
+
+	<select id="getSocialMediaUsingList" parameterType="socialMediaKeyVO" resultMap="resultVO">
+	/* getSocialMediaUsingList */
+		SELECT
+			k.sm_name,
+		    k.sm_appkey,
+		    k.sm_secretkey,
+		    k.useyn,
+		    k.sm_etc1,
+		    t.sm_etc2,
+		    k.regmemid,
+		    k.updmemid,
+		    k.delmemid,
+		    k.regdt,
+		    k.upddt,
+		    k.deldt,
+			t.site_code,
+		    t.sm_accesstoken,
+		    t.sm_accessible,
+		    t.sm_userid,
+		    t.sm_issueDate
+		<choose>
+			<when test="siteCode != null and siteCode !=''">
+				FROM (select * from t_smaccesstoken where site_code=#{siteCode}) as t
+				right join t_smkeys as k on t.sm_name=k.sm_name
+			</when>
+			<otherwise>
+				FROM t_smaccesstoken as t right join t_smkeys as k on t.sm_name=k.sm_name
+			</otherwise>
+		</choose>
+		WHERE
+			k.useyn = 'Y'
+			AND k.delyn != 'Y'
+	</select>
+
+	<update id="noUseAccessToken">
+	/* noUseAccessToken */
+		UPDATE t_smaccesstoken
+		SET
+			sm_accessible = 'N'
+		WHERE
+			site_code = #{siteCode}
+			AND sm_name = #{smName}
+	</update>
+
+	<!-- 소셜미디어 수정 -->
+	<update id="updateSocialmediaProc" parameterType="itgMap">
+	/* updateSocialmediaProc */
+		/* updateSocialmediaProc */
+		UPDATE t_smkeys
+		<set>
+		sm_name = #{smName},
+		sm_appkey = #{smAppkey},
+		sm_secretkey = #{smSecretkey},
+		account_id = #{accountId},
+		exp1 = #{exp},
+		updmemid = #{updmemid}
+			<if test="etc1 != null and etc1 != ''">
+			, sm_etc1 = #{etc1}
+			</if>
+			<if test="etc2 != null and etc2 != ''">
+			, sm_etc2 = #{etc2}
+			</if>
+		</set>
+		where smkey_idx =#{smkeyIdx}
+	</update>
+
+	<!-- 소셜미디어 등록 -->
+	<insert id="insertSocialmediaProc" parameterType="itgMap">
+		/*insertSocialmediaProc*/
+		INSERT INTO t_smkeys (
+			sm_name,
+			sm_appkey,
+			sm_secretkey,
+			<if test="etc1 != null and etc1 != ''">
+				, sm_etc1
+			</if>
+			<if test="etc2 != null and etc2 != ''">
+				, sm_etc2
+			</if>
+			account_id,
+			regmemid,
+			regdt,
+			exp1,
+
+			site_code
+		)VALUES(
+			#{smName},
+			#{smAppkey},
+			#{smSecretkey},
+			<if test="etc1 != null and etc1 != ''">
+				, #{etc1}
+			</if>
+			<if test="etc2 != null and etc2 != ''">
+				, #{etc2}
+			</if>
+			#{accountId},
+			#{regmemid},
+			NOW(),
+			#{exp},
+			#{siteCode}
+		)
+	</insert>
+
+	<!-- 소셜미디어 삭제 -->
+	<update id="mngrChkDelSocialmediaProc" parameterType="itgMap">
+		/*mngrChkDelSocialmediaProc*/
+		UPDATE t_smkeys SET
+		delyn = 'Y'
+		WHERE smkey_idx IN
+		<foreach collection="delList" item="list" index="i" open="(" close=")" separator=",">
+			#{list}
+		</foreach>
+	</update>
+
+	<!-- 소셜미디어프로그램 설정 등록 -->
+	<insert id="insertSocialProgramProc" parameterType="itgMap">
+		/*insertSocialProgramProc*/
+		INSERT INTO t_smprogram (
+			smpro_idx,
+			menu_code,
+			smkey_idx,
+			useyn,
+			prom_text
+		)VALUES(
+			IFNULL(MAX(smpro_idx) + 1, 1)
+			#{menuCode},
+			#{smkeyIdx},
+			#{useyn},
+			#{promText}
+		)
+	</insert>
+
+	<!-- 소셜미디어프로그램 설정 리스트 조회 -->
+	<select id="getSocialProgramSet" resultType="itgMap" parameterType="defaultVO">
+	/* getSocialProgramSet */
+		SELECT
+			k.smkey_idx,
+			k.sm_name,
+			k.sm_appkey,
+			k.sm_secretkey,
+			k.account_id,
+			k.sm_etc1,
+			k.exp1,
+			p.smpro_idx,
+			p.useyn,
+		    p.prom_text
+		FROM t_smkeys k
+		LEFT JOIN t_smprogram p ON k.smkey_idx = p.smkey_idx
+		WHERE k.delyn = 'N'
+		and p.menu_code = #{schOpt1}
+	</select>
+
+	<!-- 소셜미디어프로그램 설정 조회 -->
+	<select id="getSocialProgramSetInfo" resultType="itgMap" parameterType="defaultVO">
+	/* getSocialProgramSetInfo */
+		SELECT k.smkey_idx
+			, k.sm_name
+			, k.sm_appkey
+			, k.sm_secretkey
+			, k.account_id
+			, k.sm_etc1
+			, k.exp1
+		FROM t_smkeys k
+		WHERE k.delyn = 'N'
+		and k.site_code = #{etc1}
+		and k.sm_name = #{schOpt3}
+	</select>
+
+	<!-- 소셜미디어프로그램 설정 수정 -->
+	<update id="updateSocialProgramSetProc" parameterType="itgMap">
+		/* updateSocialProgramSetProc */
+		UPDATE t_smprogram
+		<set>
+		useyn = #{useyn},
+		prom_text = #{promText}
+		</set>
+		where smpro_idx =#{smproIdx}
+		and menu_code = #{menuCode}
+	</update>
+
+	<select id="checkSmName" parameterType="itgMap" resultType="int">
+	/* checkSmName */
+	select count(*) from t_smkeys
+	where sm_name = #{smName}
+	</select>
+</mapper>

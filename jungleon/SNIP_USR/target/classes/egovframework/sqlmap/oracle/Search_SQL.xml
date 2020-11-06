@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.serch.service.impl.SearchMapper">
+
+	<resultMap type="itgMap" id="bbsResult">
+		<result property="bd_content" column="bd_content" jdbcType="CLOB" javaType="java.lang.String" />
+		<result property="mc_content" column="mc_content" jdbcType="CLOB" javaType="java.lang.String" />
+		<result property="menu_name" column="menu_name" />
+		<result property="menu_pfullname" column="menu_pfullname" />
+	</resultMap>
+	<resultMap id="board" type="itgMap">
+		<result property="contents" column="contents" jdbcType="CLOB" javaType="java.lang.String"/>
+	</resultMap>
+
+	<select id="searchAllBoard" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="bbsResult">
+		/* searchAllBoard >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		SELECT * FROM
+			(SELECT RN.*, ROWNUM AS RNUM FROM(
+				SELECT
+				a.bd_idx,
+				a.bc_id,
+				a.bd_code,
+				a.bd_writer,
+				a.bd_title,
+				a.bd_content,
+				a.bd_readnum,
+				a.bd_passwd,
+				a.bd_secret,
+				a.bd_notice,
+				a.bd_useyn,
+				a.bd_ip,
+				a.bd_phone,
+				a.bd_mobile,
+				a.bd_email,
+				a.bd_addr1,
+				a.bd_addr2,
+				a.bd_reidx,
+				a.bd_relevel,
+				a.bd_reorder,
+				CAST(A.REGDT as DATE ) AS REGDT,
+				CAST(A.UPDDT as DATE ) AS UPDDT,
+				CAST(A.DELDT as DATE ) AS DELDT,
+				a.regmemid,
+				a.updmemid,
+				a.delmemid,
+				a.delyn,
+				a.bd_kogluseyn,
+				a.bd_kogltype1,
+				a.bd_kogltype2,
+				a.bd_notice_termyn,
+				a.bd_notice_sdt,
+				a.bd_notice_edt,
+				a.bd_use_termyn,
+				a.bd_use_sdt,
+				a.bd_use_edt,
+				a.bd_thumb1,
+				a.bd_thumb2,
+				a.bd_thumb3,
+				a.bd_thumb1_alt,
+				a.bd_thumb2_alt,
+				a.bd_thumb3_alt,
+				a.bd_answer,
+				a.bd_answer_writer,
+				a.group_code,
+				a.file_id,
+				b.menu_pfullname,
+				b.menu_name,
+				b.menu_code,
+				(SELECT bc_skin FROM t_board_config WHERE bc_id = a.bc_id) bcskin
+				FROM t_board a
+				LEFT OUTER JOIN T_MENU b ON  a.bc_id = b.MENU_SUBTYPE
+				WHERE 1=1
+				AND	((a.bd_title) LIKE '%' || #{schStr} || '%' OR (a.bd_content ) LIKE '%' || #{schStr} || '%')
+				AND a.delyn = 'N' AND b.delyn ='N'
+				<if test="schFld == 'all'.toString()">
+					AND b.MENU_SITECODE = #{siteCode}
+				</if>
+				<if test="schFld != 'all'.toString()">
+					AND b.MENU_SITECODE = #{siteCode}
+				</if>
+				ORDER BY REGDT desc
+			) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</select>
+
+	<select id="searchAllCntBoard" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="String">
+		/* searchAllCntBoard >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		SELECT COUNT(*)
+		FROM t_board a
+		LEFT OUTER JOIN T_MENU b ON  a.bc_id = b.MENU_SUBTYPE
+		WHERE 1=1
+		AND	((a.bd_title) LIKE '%' || #{schStr} || '%' OR (a.bd_content) LIKE '%' || #{schStr} || '%')
+		AND a.delyn = 'N' AND b.delyn ='N'
+		<if test="schFld == 'all'.toString()">
+			AND b.MENU_SITECODE = #{siteCode}
+		</if>
+		<if test="schFld != 'all'.toString()">
+			AND b.MENU_SITECODE = #{siteCode}
+		</if>
+	</select>
+
+	<select id="searchAllContents" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="bbsResult">
+		/* searchAllContents >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		SELECT * FROM
+			(SELECT RN.*, ROWNUM AS RNUM FROM(
+				SELECT
+			        a.mc_idx
+			        ,a.menu_code
+			        ,a.mc_content
+			        ,a.regdt
+			        ,b.menu_pfullname
+			        ,b.menu_name
+		        from t_menu_contents a
+		        LEFT OUTER JOIN T_MENU b ON a.menu_code = b.menu_code
+		        WHERE 1=1
+		        AND a.mc_idx IN (SELECT MAX(mc_idx) FROM t_menu_contents WHERE delyn = 'N' GROUP BY menu_code)
+				AND	((a.mc_memo) LIKE '%' || #{schStr} || '%' )
+				<if test="schFld == 'all'.toString()">
+					AND b.MENU_SITECODE = #{siteCode}
+				</if>
+				<if test="schFld != 'all'.toString()">
+					AND b.MENU_SITECODE = #{siteCode}
+				</if>
+			) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</select>
+
+	<select id="searchAllCntContents" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="String">
+		/* searchAllCntContents >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		SELECT COUNT(*)
+		FROM t_menu_contents a
+		LEFT OUTER JOIN T_MENU b ON a.menu_code = b.menu_code
+		WHERE 1=1
+		AND	((a.mc_memo) LIKE '%' || #{schStr} || '%' )
+		 AND a.mc_idx IN (SELECT MAX(mc_idx) FROM t_menu_contents WHERE delyn = 'N' GROUP BY menu_code)
+		<if test="schFld == 'all'.toString()">
+			AND b.MENU_SITECODE = #{siteCode}
+		</if>
+		<if test="schFld != 'all'.toString()">
+			AND b.MENU_SITECODE = #{siteCode}
+		</if>
+	</select>
+	<select id="searchAllGonggo" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO"  resultMap="board">
+    	/* searchAllGonggo */
+        SELECT Y.* FROM (
+            SELECT ROWNUM NUM, X.* FROM (
+                 SELECT B.*,
+                         CASE WHEN sysdate between TO_DATE(startDt || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE(endDt || ' ' || endTm || ':59:59', 'YYYY-MM-DD HH24:MI:SS')
+                               THEN 'ing'
+                            WHEN startDt &gt; TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+                               THEN 'fdaegi'
+                            WHEN startDt IS NULL OR startDt = ''
+                               THEN 'empty'
+                            ELSE 'end'
+                         END AS stat
+                 FROM
+                 (SELECT
+                         A.SNP AS snp,
+                         A.SNP_BIZ AS snpBiz,
+                         A.BIZ_DET_CD AS bizDetCd,
+                         (SELECT PRV_NM FROM vnet_v2.CO_CODE_PRV WHERE PRV_CD = A.BIZ_DET_CD) AS bizDetNm,
+                         A.TITLE AS title,
+                           A.CONTENT_HPAGE AS contents,
+                         vnet_v2.FN_MGR_NM(A.MGR_ID) AS userNm,
+                         TO_CHAR (A.REG_DT, 'YYYY-MM-DD') AS regDt,
+                         A.REG_DT AS regDt2,
+                         TO_CHAR (A.START_DT, 'YYYY-MM-DD') AS startDt,
+                         TO_CHAR (A.END_DT, 'YYYY-MM-DD') AS endDt,
+                         A.END_TM AS endTm,
+                          A.file_seq,
+                         A.READ_CNT,
+                         (
+                        SELECT CTG_SUPPORT_BIG
+                        FROM vnet_v2.BIZ_MGR
+                        WHERE SNP =A.SNP_BIZ
+                              ) AS etcname,
+                         CASE WHEN (SELECT TO_DATE(TO_CHAR(SYSDATE, 'YY/MM/DD'), 'YY/MM/DD') - TO_DATE(A.REG_DT, 'YY/MM/DD') FROM DUAL)>7 THEN 'N'
+				ELSE 'Y'
+				END AS new_yn
+                    FROM vnet_v2.BIZ_GONGGO A
+                   WHERE USE_YN = 'Y'
+                     AND REG_DT > '2016-01-01'
+                     AND ((a.TITLE) LIKE '%' || #{schStr} || '%' OR (a.CONTENT_HPAGE ) LIKE '%' || #{schStr} || '%')
+                   ) B
+                   ORDER BY stat DESC, regDt2 DESC
+                ) X
+            WHERE ROWNUM &lt;= #{lastIndex}
+
+         ) Y
+         WHERE NUM &gt; #{firstIndex}
+    </select>
+
+    <select id="searchAllCntGonggo" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="String">
+		/* searchAllCntGonggo */
+         SELECT COUNT(snp) AS totalCount
+            FROM vnet_v2.BIZ_GONGGO A
+           WHERE USE_YN = 'Y'
+            AND REG_DT > '2016-01-01'
+             AND ((a.TITLE) LIKE '%' || #{schStr} || '%' OR (a.CONTENT_HPAGE ) LIKE '%' || #{schStr} || '%')
+    </select>
+</mapper>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.project.totalTable.service.impl.TotalTableMapper">
+
+<sql id="pageBefore">
+	SELECT * FROM
+	(SELECT RN.*, ROWNUM AS RNUM FROM(
+</sql>
+
+<sql id="pageAfter">
+	) RN
+	) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+</sql>
+
+<sql id="listWhere">
+	AND a.delyn = 'N'
+	<if test="schStr != null and schStr != ''">
+		<choose><!-- 전체 -->
+			<when test="schFld == '1'.toString()">
+				AND b.c_name LIKE '%' || #{schStr} || '%'
+			</when>
+			<when test="schFld == '2'.toString()">
+				AND a.bs_name LIKE '%' || #{schStr} || '%'
+			</when>
+			<otherwise>
+				AND (
+					b.c_name LIKE '%' || #{schStr} || '%'
+				OR
+					a.bs_name  LIKE '%' || #{schStr} || '%'
+				)
+			</otherwise>
+		</choose>
+	</if>
+</sql>
+
+<sql id="totalTbColumns">
+	a.bs_idx,
+	a.bs_year,
+	a.gr_step,
+	a.bs_name,
+	a.gp_Name,
+	a.cg_Name,
+	a.bs_location,
+	a.bs_period,
+	a.regid,
+	TO_CHAR(a.REGDT, 'YYYY-MM-DD')  AS REGDT,
+	a.updid,
+	TO_CHAR(a.UPDDT, 'YYYY-MM-DD')  AS UPDDT,
+	a.delid,
+	TO_CHAR(a.DELDT, 'YYYY-MM-DD')  AS DELDT,
+	a.delyn,
+	(SELECT c_name FROM t_code WHERE c_code = a.gp_name) strGpName,
+	a.menu_code,
+	b.c_name strCgName
+</sql>
+
+<sql id="totalTbColumns2">
+	a.bs_idx,
+	a.bs_year,
+	a.gr_step,
+	a.bs_name,
+	a.bs_location,
+	a.bs_period,
+	a.regid,
+	a.regdt,
+	a.updid,
+	a.upddt,
+	a.delid,
+	a.deldt,
+	a.delyn,
+	a.gp_Name,
+	a.cg_Name,
+	a.menu_code
+</sql>
+
+
+<select id="selectTotalTbMaxIdx" resultType="String">
+		SELECT NVL(MAX(bs_idx), 0) + 1 FROM t_total_tb
+</select>
+
+<insert id="insertTotalTbData" parameterType="egovframework.itgcms.project.totalTable.service.TotalTbVO" >
+		INSERT INTO t_total_tb (
+			BS_IDX,
+			BS_YEAR, GP_NAME, GR_STEP, CG_NAME, BS_NAME,
+			BS_LOCATION, BS_PERIOD, REGID, REGDT, DELYN,
+			menu_code
+		) VALUES(
+			#{bsIdx},
+			#{bsYear}, #{gpName}, #{grStep}, #{cgName}, #{bsName},
+			#{bsLocation}, #{bsPeriod}, #{regid}, sysdate, 'N',
+			#{menuCode}
+		)
+</insert>
+
+<select id="selectTotalTbList"  resultType="egovframework.itgcms.project.totalTable.service.TotalTbVO">
+	<if test="excelDown != 'Y'.toString()">
+		<include refid="pageBefore" />
+	</if>
+	SELECT
+		<include refid="totalTbColumns" />
+		,c.menu_name,
+		c.menu_pfullcode ,
+		c.menu_pfullname
+	FROM t_total_tb a
+	LEFT JOIN t_code b ON b.c_code = a.cg_name
+	LEFT JOIN t_menu c ON a.menu_code = c.menu_code
+	WHERE 1=1
+	<include refid="listWhere" />
+	<choose>
+		<when test="ordFld != '' and ordBy != ''">
+			ORDER BY
+			<choose>
+				<when test="ordFld == 'section'">gp_name </when>
+				<when test="ordFld == 'cgname'">cg_name </when>
+				<otherwise>
+					,a.regdt DESC
+				</otherwise>
+			</choose>
+			${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+		</when>
+		<otherwise>
+			ORDER BY a.regdt DESC
+		</otherwise>
+	</choose>
+	<if test="excelDown != 'Y'.toString()">
+		<include refid="pageAfter" />
+	</if>
+</select>
+
+<select id="selectTotalTbListTotCnt" parameterType="defaultVO" resultType="int">
+	/* selectTotalTbListTotCnt */
+	SELECT COUNT(*) totcnt
+	FROM t_total_tb a
+	LEFT JOIN t_code b ON b.c_code = a.cg_name
+	LEFT JOIN t_menu c ON a.menu_code = c.menu_code
+	WHERE 1=1
+	<include refid="listWhere" />
+</select>
+
+<select id="selectTotalTbView" parameterType="defaultVO" resultType="egovframework.itgcms.project.totalTable.service.TotalTbVO">
+	SELECT
+		<include refid="totalTbColumns" />
+		,c.menu_name,
+		c.menu_pfullcode ,
+		c.menu_pfullname
+	FROM t_total_tb a
+	LEFT JOIN t_code b ON b.c_code = a.cg_name
+	LEFT JOIN t_menu c ON a.menu_code = c.menu_code
+	WHERE 1=1
+	AND a.bs_idx = #{schId}
+</select>
+
+
+<update id="updateTotalTbView" parameterType="egovframework.itgcms.project.totalTable.service.TotalTbVO">
+	UPDATE
+		t_total_tb
+	SET
+		<if test="bsYear != null and bsYear != ''"> BS_YEAR = #{bsYear} , </if>
+		<if test="gpName != null and gpName != ''"> GP_NAME = #{gpName} , </if>
+		<if test="grStep != null"> GR_STEP = #{grStep} , </if>
+		<if test="cgName != null and cgName != ''"> CG_NAME = #{cgName} , </if>
+		<if test="bsName != null and bsName != ''"> BS_NAME = #{bsName} , </if>
+		BS_LOCATION = #{bsLocation} ,
+		BS_PERIOD = #{bsPeriod} ,
+		<if test="menuCode != null and menuCode != ''"> menu_code = #{menuCode} , </if>
+
+		updid = #{updid},
+		upddt = SYSDATE
+	WHERE
+		bs_idx = #{bsIdx}
+</update>
+
+<update id="deleteTotalTbView" parameterType="egovframework.itgcms.project.totalTable.service.TotalTbVO">
+		UPDATE t_total_tb SET delid = #{delid}, deldt = SYSDATE, delyn = 'Y' WHERE bs_idx = #{bsIdx}
+</update>
+
+<select id="selectTotalTbListAll" parameterType="defaultVO" resultType="egovframework.itgcms.project.totalTable.service.TotalTbVO">
+	SELECT
+		<include refid="totalTbColumns" />,(SELECT LISTAGG(CG_NAME, ',') WITHIN GROUP (ORDER BY CG_NAME) AS CG_NAME FROM (SELECT DISTINCT CG_NAME FROM t_total_tb WHERE DELYN ='N')) AS cgArr
+	FROM t_total_tb a
+	LEFT JOIN t_code b ON b.c_code = a.cg_name
+	WHERE 1=1
+		AND a.delyn = 'N'
+		AND a.bs_year = #{schOpt1}
+	<if test="act == 'totalTb'">
+		AND a.gr_step IS NOT NULL
+	</if>
+	<if test="schOpt2 != null and schOpt2 != ''">
+		AND gr_step like '%' || #{schOpt2} || '%'
+	</if>
+	ORDER BY ${ordFld} ${ordBy} , bs_idx
+</select>
+
+<select id="selectMenuSubListByPcode" parameterType="String" resultType="EgovMap">
+	SELECT menu_code, menu_name FROM t_menu WHERE menu_pcode = #{0} and delyn='N' ORDER BY MENU_ORDER
+</select>
+</mapper>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.contract.service.impl.ContractMapper">
+
+	<resultMap id="contractMap" type="egovframework.itgcms.module.contract.service.ContractSearchVO" />
+
+	<sql id="listWhere">
+		<if test="schStr != null and schStr != ''">
+	        <choose>
+	            <when test="schFld == '1'.toString()">
+					AND no = #{no}
+				</when>
+	            <when test="schFld == '2'.toString()">
+					AND title LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test="schFld == '3'.toString()">
+					AND regMemId = #{schStr}
+				</when>
+				<when test="schFld == '4'.toString()">
+					AND contents LIKE '%' + #{schStr} + '%'
+				</when>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="contractTotCnt" resultType="int" parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO">
+		/*contractTotCnt */
+		SELECT 
+			count(no) 
+		FROM 
+			 t_contract
+		 WHERE 
+		 	delyn = 'N'
+		 	<include refid="listWhere" />
+	</select>
+
+	<select id="mngrGetContractAllList"  resultMap="contractMap" >
+	/*mngrGetContractAllList */
+		SELECT 
+		    no,
+		    title,
+		    contents,
+		    required,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    regdt,
+		    upddt,
+		    deldt,
+		    delyn
+		FROM
+		    t_contract
+		 WHERE 
+		 	delyn = 'N'
+		 ORDER BY 
+		 	no DESC
+	</select>
+
+	<select id="selectMngrGetContractList"  resultMap="contractMap" parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO">
+	/*selectMngrGetContractList */
+	SELECT * from (
+		SELECT
+			ceiling(row_number() over (ORDER BY no DESC) / cast(#{recordCountPerPage} as float)) AS page,
+		    no,
+		    title,
+		    contents,
+		    required,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    regdt,
+		    upddt,
+		    deldt,
+		    delyn
+		FROM
+		    t_contract
+		 WHERE 
+		 	delyn = 'N'
+		 	<include refid="listWhere" />
+	) tb
+	where
+		page = (cast(#{firstIndex} as float) / cast(#{recordCountPerPage} as float)) + 1
+	</select>
+
+	<select id="selectContractObj"  parameterType="int" resultMap="contractMap" >
+	/*selectContractObj */
+		SELECT
+		    no,
+		    title,
+		    contents,
+		    required,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    regdt,
+		    upddt,
+		    deldt,
+		    delyn
+		FROM
+		    t_contract
+		 WHERE
+		 	no = #{no}
+	</select>
+
+	<insert id="mngrInsertContract"  parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO" >
+	/*mngrInsertContract */
+		INSERT INTO t_contract
+			(
+			title,
+			contents,
+			required,
+			regMemId,
+			regDt,
+			delyn)
+			VALUES
+			(
+			#{title},
+			#{contents},
+			#{required},
+			#{regMemId},
+			GETDATE(),
+			#{delyn}
+			)
+	</insert>
+
+	<update  id="updateContract" parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO">
+	/*updateContract */
+		UPDATE t_contract
+		SET
+			title = #{title},
+			contents = #{contents},
+			updmemid = #{updMemId},
+			upddt = GETDATE()
+		WHERE no = #{no}
+	</update>
+
+	<select id="mngrGetContractListByContractDesc" resultMap="contractMap">
+		/*mngrGetContractListByContractDesc */
+		SELECT no,
+		    title,
+		    contents,
+		    required,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    regdt,
+		    upddt,
+		    deldt,
+		    delyn
+		FROM t_contract 
+		WHERE 
+			delyn = 'N'
+			AND no IN
+		<foreach collection="contractDesc" item="type" index="i"  open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+	</select>
+
+	<update id="deleteContract" parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO">
+		/*deleteContract */
+		UPDATE t_contract
+		SET
+			delmemid = #{delMemId},
+			deldt = GETDATE(),
+			delyn = 'Y'
+		WHERE no = #{no}
+	</update>
+
+	<update id="mngrDeleteContracts" parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO">
+		/*mngrDeleteContracts */
+		UPDATE t_contract
+		SET
+			delmemid = #{delMemId},
+			deldt = GETDATE(),
+			delyn = 'Y'
+		WHERE no in 
+			<foreach collection="nos" item="no" index="i"  open="(" close=")" separator=",">
+            #{no}
+			</foreach>
+	</update>
+
+	<insert id="setMenuContractInfo"  parameterType="egovframework.itgcms.module.contract.service.ContractSearchVO" >
+	/*mngrInsertContract */
+		INSERT INTO t_menu_program
+			(
+			`menu_code`,
+			`prog_idx`,
+			`mp_opt1`,
+			`mp_opt2`
+			)
+		VALUES
+			(
+			#{menuCode},
+			#{progIdx},
+			#{opt},
+			#{contractNo}
+			)
+	</insert>
+
+	<select id="getMenuContractInfo" resultType="egovMap">
+	/* getMenuContractInfo*/
+		SELECT 
+			mp_opt1 opt,
+			mp_opt2 contractNo			
+		FROM
+			t_menu_program
+		WHERE
+			menu_code=#{menuCode}
+			and prog_idx=#{progIdx}
+	</select>
+
+	<delete id="delMenuContractInfo">
+	/* delMenuContractInfo*/
+		DELETE FROM
+			t_menu_program
+		WHERE
+			menu_code=#{menuCode}
+			and prog_idx=#{progIdx}
+	</delete>
+
+</mapper>

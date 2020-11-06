@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.user.member.service.impl.MyQnaMapper">
+
+	<sql id="pageBefore">
+		SELECT * FROM
+		(SELECT RN.*, ROWNUM AS RNUM FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+		AND a.bbs_cd = 11
+		AND a.id = #{schMemid}
+		<if test="schStr != null and schStr != ''">
+			<choose><!-- 전체 -->
+				<when test="schFld == '1'.toString()">
+					AND a.title LIKE '%' || #{schStr} || '%'
+				</when>
+				<when test="schFld == '2'.toString()">
+					AND a.qst_summary LIKE '%' || #{schStr} || '%'
+				</when>
+				<otherwise>
+					AND (
+						a.title LIKE '%' || #{schStr} || '%'
+					OR
+						a.qst_summary  LIKE '%' || #{schStr} || '%'
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	<sql id="myQnaColumns">
+		a.bbs_cd,
+		a.bbs_seq,
+		a.ref_seq,
+		a.order_no,
+		a.depth,
+		a.ctg_cd,
+		a.title,
+		a.writer_nm,
+		a.writer_pwd,
+		a.reply_nm,
+		a.mgr_id,
+		a.id,
+		a.question,
+		a.reply,
+		a.file_seq,
+		a.read_cnt,
+		a.open_yn,
+		a.start_dd,
+		a.end_dd,
+		a.reg_dt,
+		a.modi_dt,
+		a.status_cd,
+		a.qst_summary,
+		a.data_src,
+		a.img_link,
+		a.news_link,
+		a.news_id,
+		a.writer_email,
+		a.ipin_id,
+		vnet_v2.FN_PRV_NM(A.status_cd, 11) AS statusNm
+	</sql>
+
+	<select id="selectMyQnaListTotCnt" parameterType="defaultVO" resultType="int">
+		/* selectMyQnaListTotCnt */
+		SELECT COUNT(*) totcnt
+		FROM vnet_v2.co_bbs a
+		WHERE 1=1
+		<include refid="listWhere" />
+	</select>
+
+	<select id="selectMyQnaList" parameterType="defaultVO" resultType="egovframework.itgcms.user.member.service.MyQnaVO">
+		/* selectMyQnaList */
+		SELECT
+			<include refid="myQnaColumns" />
+		FROM vnet_v2.co_bbs a
+		WHERE 1=1
+		<include refid="listWhere" />
+		ORDER BY a.reg_dt DESC
+	</select>
+
+	<select id="selectMyQnaView" parameterType="defaultVO" resultType="egovframework.itgcms.user.member.service.MyQnaVO">
+		SELECT
+			<include refid="myQnaColumns" />
+		FROM vnet_v2.co_bbs a
+		WHERE 1=1
+		AND a.bbs_cd = 11
+		AND a.id = #{schMemid}
+		AND a.bbs_seq = #{schId}
+	</select>
+
+	<select id="selectMyQnaViewPrevNext" parameterType="defaultVO" resultType="egovMap">
+	WITH mem_rnum AS (
+			SELECT RN.*, ROWNUM AS RNUM FROM(
+				SELECT
+					a.bbs_seq, a.title
+				FROM vnet_v2.co_bbs a
+				WHERE 1=1
+				<include refid="listWhere" />
+				ORDER BY a.reg_dt  desc
+			) rn
+		)
+		SELECT
+		'PREV' as prevnext,
+		bb.bbs_seq, bb.title
+		from mem_rnum aa join mem_rnum bb on bb.rnum = aa.rnum -1
+		WHERE aa.bbs_seq = #{schId}
+		UNION ALL
+		SELECT
+		'NEXT' as prevnext,
+		bb.bbs_seq, bb.title
+		from mem_rnum aa join mem_rnum bb on bb.rnum = aa.rnum +1
+		WHERE aa.bbs_seq = #{schId}
+	</select>
+</mapper>

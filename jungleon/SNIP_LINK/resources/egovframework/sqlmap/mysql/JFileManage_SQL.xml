@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.jfile.service.impl.AttachFileMapper">
+
+	<insert id="addAttachFile" parameterType="egovframework.itgcms.module.jfile.service.impl.JFileVO">
+	/***** addAttachFile *****/
+		<selectKey resultType="String" keyProperty="fileIdx" order="BEFORE">
+			select ifnull(max(FILE_IDX), 0) + 1 from J_ATTACHFILE
+		</selectKey>
+		INSERT
+		  INTO J_ATTACHFILE
+		    (
+			   FILE_IDX,
+			   FILE_ID,
+			   FILE_SEQ,
+			   FILE_NAME,
+			   FILE_SIZE,
+			   FILE_FOLDER,
+			   FILE_MASK,
+			   DOWNLOAD_COUNT,
+			   DOWNLOAD_EXPIRE_DATE,
+			   DOWNLOAD_LIMIT_COUNT,
+			   REG_DATE
+			)
+			   VALUES
+			(
+			   #{fileIdx},
+			   #{fileId},
+			   (SELECT IFNULL(MAX(FILE_SEQ),0)+1 FROM J_ATTACHFILE AS JA WHERE FILE_ID = #{fileId}),
+			   #{fileName},
+			   #{fileSize},
+			   #{fileFolder},
+			   #{fileMask},
+			    0,
+			   #{downloadExpireDate},
+			   #{downloadLimitCount},
+			   now()
+			)
+	</insert>
+
+	<update id="updateAttachFileDeleteYnByFileId" parameterType="itgMap">
+	/***** updateAttachFileDeleteYnByFileId *****/
+		UPDATE J_ATTACHFILE
+		   SET DELETE_YN = #{deleteYn}
+		 WHERE FILE_ID   = #{fileId}
+	</update>
+
+	<update id="updateAttachFileDeleteYn" parameterType="itgMap">
+	/***** updateAttachFileDeleteYn *****/
+		UPDATE J_ATTACHFILE
+		   SET DELETE_YN = #{deleteYn}
+		 WHERE FILE_ID  = #{fileId}
+       	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeqs)">
+       		AND FILE_SEQ in
+       		<foreach item="item" index="index" open="(" close=")" separator="," collection="fileSeqs">
+       			#{item}
+       		</foreach>
+       	</if>
+	</update>
+
+	<update id="updateAttachFileDeleteYnByIdx" parameterType="itgMap">
+	/***** updateAttachFileDeleteYnByIdx *****/
+		UPDATE J_ATTACHFILE
+		   SET DELETE_YN = #{deleteYn}
+		 WHERE FILE_IDX in
+       		<foreach item="item" index="index" open="(" close=")" separator="," collection="fileIdxs">
+       			#{item}
+       		</foreach>
+	</update>
+
+	<update id="updateAttachFileDownloadCount" parameterType="itgMap">
+	/***** updateAttachFileDownloadCount *****/
+		UPDATE J_ATTACHFILE
+           SET DOWNLOAD_COUNT = DOWNLOAD_COUNT + 1
+		<where>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileIdx)">
+		       AND FILE_IDX  = #{fileIdx}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileId)">
+		       AND FILE_ID  = #{fileId}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeq)">
+		       AND FILE_SEQ = #{fileSeq}
+		  	</if>
+		</where>
+	</update>
+
+	<update id="updateAttachFileDownloadCountBySequence" parameterType="itgMap">
+	/***** updateAttachFileDownloadCountBySequence *****/
+		UPDATE J_ATTACHFILE
+           SET DOWNLOAD_COUNT = DOWNLOAD_COUNT + 1
+         WHERE FILE_ID        = #{fileId}
+           AND FILE_SEQ       = #{fileSeq}
+	</update>
+
+	<update id="updateAttachFileDownloadCountByFileId" parameterType="string">
+	/***** updateAttachFileDownloadCountByFileId *****/
+		UPDATE J_ATTACHFILE
+           SET DOWNLOAD_COUNT = DOWNLOAD_COUNT + 1
+         WHERE FILE_ID = #{value}
+	</update>
+
+	<delete id="removeAttachFileByIdx" parameterType="itgMap">
+	/***** removeAttachFileByIdx *****/
+		DELETE
+          FROM J_ATTACHFILE
+         WHERE FILE_IDX  = #{fileIdx}
+	</delete>
+
+	<delete id="removeAttachFile" parameterType="itgMap">
+	/***** removeAttachFile *****/
+		DELETE
+          FROM J_ATTACHFILE
+         WHERE FILE_ID  = #{fileId}
+       	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeqs)">
+       		AND FILE_SEQ in
+       		<foreach item="item" index="index" open="(" close=")" separator="," collection="fileSeqs">
+       			#{item}
+       		</foreach>
+       	</if>
+	</delete>
+
+	<select id="selectAttachFile" parameterType="itgMap" resultType="egovframework.itgcms.module.jfile.service.impl.JFileVO">
+	/***** selectAttachFile *****/
+		SELECT
+			   FILE_IDX              ,
+			   FILE_ID               ,
+			   FILE_SEQ              ,
+			   FILE_NAME             ,
+		       FILE_SIZE             ,
+		       FILE_FOLDER           ,
+		       FILE_MASK             ,
+		       DOWNLOAD_COUNT        ,
+		       DOWNLOAD_EXPIRE_DATE  ,
+		       DOWNLOAD_LIMIT_COUNT  ,
+		       REG_DATE
+		  FROM J_ATTACHFILE
+		<where>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileIdx)">
+		       AND FILE_IDX  = #{fileIdx}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileId)">
+		       AND FILE_ID  = #{fileId}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeq)">
+		       AND FILE_SEQ = #{fileSeq}
+		  	</if>
+		</where>
+	</select>
+
+	<select id="selectAttachFileSwapTarget" parameterType="itgMap" resultType="egovframework.itgcms.module.jfile.service.impl.JFileVO">
+	/***** selectAttachFileSwapTarget *****/
+
+		SELECT * FROM
+		(	select
+				a.FILE_IDX,
+				a.FILE_ID,
+				a.FILE_SEQ
+			from J_ATTACHFILE a
+			<where>
+				DELETE_YN = 'N'
+				AND a.FILE_ID = (select FILE_ID from J_ATTACHFILE where FILE_IDX= #{fileIdx})
+			</where>
+			<choose>
+				<when test="mode eq 'UP'">
+					and a.FILE_SEQ &lt; (select FILE_SEQ from J_ATTACHFILE where FILE_IDX= #{fileIdx})
+					order by FILE_SEQ desc
+				</when>
+				<when test="mode eq 'DOWN'">
+					and a.FILE_SEQ &gt; (select FILE_SEQ from J_ATTACHFILE where FILE_IDX= #{fileIdx})
+					order by FILE_SEQ asc
+				</when>
+			</choose>
+		)
+		WHERE rownum &lt; 2
+    </select>
+
+	<select id="selectAttachFiles" parameterType="itgMap" resultType="egovframework.itgcms.module.jfile.service.impl.JFileVO">
+	/***** selectAttachFiles *****/
+		SELECT
+			   FILE_IDX              ,
+			   FILE_ID               ,
+			   FILE_SEQ              ,
+			   FILE_NAME             ,
+		       FILE_SIZE             ,
+		       FILE_FOLDER             ,
+		       FILE_MASK             ,
+		       DOWNLOAD_COUNT        ,
+		       DOWNLOAD_EXPIRE_DATE  ,
+		       DOWNLOAD_LIMIT_COUNT  ,
+		       REG_DATE
+		  FROM J_ATTACHFILE
+		  <where>
+		  	DELETE_YN = 'N'
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileId)">
+		       AND FILE_ID  = #{fileId}
+		  	</if>
+		  	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeq)">
+		       AND FILE_SEQ = #{fileSeq}
+		  	</if>
+		  </where>
+		  ORDER BY FILE_SEQ ASC
+	</select>
+
+	<select id="getAttachFileSeqs" parameterType="string" resultType="string">
+	/***** getAttachFileSeqs *****/
+		SELECT FILE_SEQ
+		  FROM J_ATTACHFILE
+		 WHERE FILE_ID = #{value}
+		   AND DELETE_YN = 'Y'
+	</select>
+
+	<select id="isExistingAttachFileInfo" parameterType="itgMap" resultType="string">
+	/***** isExistingAttachFileInfo *****/
+		SELECT FILE_ID
+		  FROM J_ATTACHFILE
+		 WHERE FILE_ID  = #{fileId}
+       	<if test = "@egovframework.itgcms.util.CommUtil@notEmpty(fileSeqs)">
+       		AND FILE_SEQ in
+       		<foreach item="item" index="index" open="(" close=")" separator="," collection="fileSeqs">
+       			#{item}
+       		</foreach>
+       	</if>
+	</select>
+
+	<update id="modAttachFileSeq" parameterType="itgMap">
+	/***** modAttachFileSeq *****/
+		UPDATE 	J_ATTACHFILE SET
+				FILE_SEQ = #{fileSeq}
+		 WHERE 	FILE_IDX = #{fileIdx}
+	</update>
+</mapper>

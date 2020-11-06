@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.menuAuth.service.impl.MenuAuthMapper">
+
+	<sql id="pageBefore">
+		SELECT * FROM
+		(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhereMenuAuth">
+		/*listWhere*/
+			a.delyn = 'N'
+			<if test="schMenuAuthIdx != null and schMenuAuthIdx != ''">
+				AND a.MENU_AUTH_IDX = #{schMenuAuthIdx}
+			</if>
+			<if test="schSiteCode != null and schSiteCode != ''">
+				AND a.MENU_AUTH_SITECODE = #{schSiteCode}
+			</if>
+			<if test="schStr != null and schStr != ''">
+				<choose>
+					<when test='schFld == "1"'>
+						AND a.MENU_AUTH_NAME LIKE '%' || #{schStr} || '%'
+					</when>
+					<when test='schFld == "2"'>
+						AND a.MENU_AUTH_ITEM_META LIKE '%' || #{schStr} || '%'
+					</when>
+					<otherwise>
+						AND (a.MENU_AUTH_NAME LIKE '%' || #{schStr} || '%' OR a.MENU_AUTH_ITEM_META LIKE '%' || #{schStr} || '%')
+					</otherwise>
+				</choose>
+			</if>
+	</sql>
+
+	<select id="selectMenuAuthView" parameterType="itgMap" resultType="itgMap">
+		/*selectMenuAuthView*/
+		SELECT
+			a.MENU_AUTH_IDX,
+			a.MENU_AUTH_TYPE,
+			a.MENU_AUTH_NAME,
+			a.MENU_AUTH_SITECODE,
+			a.MENU_AUTH_ITEM_META,
+			a.REGDT,
+			a.UPDDT,
+			a.REGMEMID,
+			a.UPDMEMID,
+			(SELECT COUNT(*) FROM T_MANAGER_MENU_AUTH b WHERE b.MENU_AUTH_IDX = a.MENU_AUTH_IDX) MANAGER_COUNT
+		FROM T_MENU_AUTH a
+		WHERE <include refid="listWhereMenuAuth" />
+		ORDER BY a.REGDT DESC
+	</select>
+
+	<select id="selectMenuAuthList" parameterType="itgMap" resultType="itgMap">
+		/*selectMenuAuthList*/
+		<if test='excelDown != "excel"'>
+			<include refid="pageBefore" />
+		</if>
+		SELECT
+			a.MENU_AUTH_IDX,
+			a.MENU_AUTH_TYPE,
+			a.MENU_AUTH_NAME,
+			a.MENU_AUTH_SITECODE,
+			a.MENU_AUTH_ITEM_META,
+			a.REGDT,
+			a.UPDDT,
+			a.REGMEMID,
+			a.UPDMEMID,
+			(SELECT COUNT(*) FROM T_MANAGER_MENU_AUTH b WHERE b.MENU_AUTH_IDX = a.MENU_AUTH_IDX) MANAGER_COUNT
+		FROM T_MENU_AUTH a
+		WHERE <include refid="listWhereMenuAuth" />
+		  AND a.MENU_AUTH_TYPE = '1'
+		ORDER BY a.REGDT DESC
+		<if test='excelDown != "excel"'>
+			<include refid="pageAfter" />
+		</if>
+	</select>
+
+	<select id="selectMenuAuthListTotCnt" parameterType="itgMap" resultType="int">
+		/*selectMenuAuthListTotCnt*/
+		SELECT
+			COUNT(*)
+		FROM T_MENU_AUTH a
+		WHERE <include refid="listWhereMenuAuth" />
+		  AND a.MENU_AUTH_TYPE = '1'
+		ORDER BY a.REGDT DESC
+	</select>
+<!-- 	<select id="selectMenuAuthItemList" parameterType="itgMap" resultType="itgMap">
+		/*selectMenuAuthItemList*/
+		SELECT
+			  a.ITEM_IDX
+			, a.MENU_AUTH_IDX
+			, a.MENU_CODE
+			, a.AUTH_C
+			, a.AUTH_R
+			, a.AUTH_U
+			, a.AUTH_D
+			, a.REGMEMID
+			, a.UPDMEMID
+		FROM T_MENU_AUTH_ITEM a
+		<if test='schSiteCode != "" and schSiteCode != null'>
+		LEFT JOIN T_MENU b ON a.MENU_CODE = b.MENU_CODE
+		</if>
+		WHERE a.DELYN = 'N'
+		<if test='schSiteCode != "" and schSiteCode != null'>
+		  AND b.MENU_SITECODE = #{schSiteCode}
+		</if>
+		  AND a.MENU_AUTH_IDX = #{schMenuAuthIdx}
+		ORDER BY a.REGDT DESC
+	</select> -->
+
+	<select id="selectMenuAuthItemList" parameterType="itgMap" resultType="itgMap">
+        /*selectMenuAuthItemList*/
+        SELECT
+            a.MENU_AUTH_SITECODE MENU_SITECODE
+            , b.MENU_CODE
+            , MAX(b.AUTH_C) AUTH_C
+            , MAX(b.AUTH_R) AUTH_R
+            , MAX(b.AUTH_U) AUTH_U
+            , MAX(b.AUTH_D) AUTH_D
+        FROM T_MENU_AUTH a
+        LEFT JOIN T_MENU_AUTH_ITEM b ON b.MENU_AUTH_IDX = a.MENU_AUTH_IDX
+        LEFT JOIN T_MANAGER_MENU_AUTH c ON c.MENU_AUTH_IDX = a.MENU_AUTH_IDX
+        WHERE a.DELYN = 'N'
+        <choose>
+        	<when test='schOpt1 == "T"'><!-- 개별통합권한 -->
+	            AND a.MENU_AUTH_SITECODE = #{schSiteCode}
+	          	AND c.MNG_ID = #{schMngId}
+	        	AND c.DELYN = 'N'
+        	</when>
+        	<when test='schOpt1 == "G"'><!-- 개별그룹권한 -->
+        		AND a.MENU_AUTH_TYPE = '1'
+	            AND a.MENU_AUTH_SITECODE = #{schSiteCode}
+	          	AND c.MNG_ID = #{schMngId}
+	        	AND c.DELYN = 'N'
+        	</when>
+        	<otherwise>
+        		AND a.MENU_AUTH_TYPE = #{schType}
+        		AND a.MENU_AUTH_IDX = #{schMenuAuthIdx}
+        	</otherwise>
+        </choose>
+
+     GROUP BY b.MENU_CODE, a.MENU_AUTH_SITECODE
+        ORDER BY b.MENU_CODE
+	</select>
+
+	<insert id="insertMenuAuth" parameterType="itgMap">
+		/*insertMenuAuth*/
+		<selectKey resultType="int" keyProperty="menuAuthIdx" order="BEFORE">
+			select T_MENU_AUTH_SEQ.nextval FROM DUAL
+		</selectKey>
+		INSERT INTO T_MENU_AUTH(
+			  MENU_AUTH_IDX
+			, MENU_AUTH_TYPE
+			, MENU_AUTH_NAME
+			, MENU_AUTH_SITECODE
+			, MENU_AUTH_ITEM_META
+			, REGMEMID
+		)VALUES(
+			  ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(menuAuthIdx)}
+			, #{menuAuthType}
+			, #{menuAuthName}
+			, #{menuAuthSitecode}
+			, #{menuCodes}
+			, #{loginId}
+		)
+	</insert>
+
+	<update id="updateMenuAuth" parameterType="itgMap">
+		/*updateMenuAuth*/
+		UPDATE T_MENU_AUTH
+		<set>
+			<if test="menuAuthName != null">MENU_AUTH_NAME = #{menuAuthName},</if>
+			<if test="menuAuthSitecode != null">MENU_AUTH_SITECODE = #{menuAuthSitecode},</if>
+			<if test="menuCodes != null">MENU_AUTH_ITEM_META = #{menuCodes},</if>
+			UPDMEMID=#{loginId}
+    	</set>
+		WHERE MENU_AUTH_IDX = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(menuAuthIdx)}
+	</update>
+
+	<insert id="insertMenuAuthItem" parameterType="itgMap">
+		/*insertMenuAuthItem*/
+		<selectKey resultType="int" keyProperty="itemIdx" order="BEFORE">
+			select T_MENU_AUTH_ITEM_SEQ.nextval FROM DUAL
+		</selectKey>
+		INSERT INTO T_MENU_AUTH_ITEM(
+			  ITEM_IDX
+			, MENU_AUTH_IDX
+			, MENU_CODE
+			, AUTH_C
+			, AUTH_R
+			, AUTH_U
+			, AUTH_D
+			, REGMEMID
+		)VALUES(
+			  ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(itemIdx)}
+			, #{menuAuthIdx}
+			, #{menuCode}
+			, #{authC}
+			, #{authR}
+			, #{authU}
+			, #{authD}
+			, #{loginId}
+		)
+	</insert>
+
+	<insert id="insertManagerMenuAuth" parameterType="itgMap">
+		/*insertManagerMenuAuth*/
+		<selectKey resultType="int" keyProperty="managerMenuAuthIdx" order="BEFORE">
+			select T_MANAGER_MENU_AUTH_SEQ.nextval FROM DUAL
+		</selectKey>
+		INSERT INTO T_MANAGER_MENU_AUTH(
+			  MANAGER_MENU_AUTH_IDX
+			, MENU_AUTH_IDX
+			, MNG_ID
+			, REGMEMID
+		)VALUES(
+			  ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(managerMenuAuthIdx)}
+			, #{menuAuthIdx}
+			, #{optStr}
+			, #{loginId}
+		)
+	</insert>
+
+	<select id="selectMenuAuthListForIndividual" parameterType="itgMap" resultType="itgMap">
+		/*selectMenuAuthListForIndividual*/
+		SELECT
+			TO_CHAR(a.MENU_AUTH_IDX) MENU_AUTH_IDX,
+			a.MENU_AUTH_NAME,
+			a.MENU_AUTH_SITECODE,
+			c.SITE_NAME MENU_AUTH_SITENAME,
+			TO_CHAR(a.MENU_AUTH_ITEM_META) MENU_AUTH_ITEM_META,
+			a.REGDT,
+			a.UPDDT,
+			a.REGMEMID,
+			a.UPDMEMID
+		FROM T_MENU_AUTH a
+		LEFT JOIN T_MANAGER_MENU_AUTH b on a.menu_auth_idx = b.menu_auth_idx
+		LEFT JOIN T_SITE c on a.menu_auth_sitecode = c.site_code
+		WHERE a.DELYN = 'N'
+		  AND a.MENU_AUTH_TYPE = '1'
+		  AND b.MNG_ID = #{schMngId}
+		ORDER BY a.REGDT DESC
+	</select>
+
+
+	<update id="deleteMenuAuth" parameterType="itgMap">
+		/*deleteMenuAuth*/
+		UPDATE T_MENU_AUTH SET
+			DELYN = 'Y'
+		<where>
+			<choose>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngId)">
+					MENU_AUTH_NAME = #{mngId} and MENU_AUTH_TYPE = '0'
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngIds)">
+					MENU_AUTH_TYPE = '0' and MENU_AUTH_NAME in
+							<foreach item="item" open="(" close=")" separator="," collection="mngIds">#{item}</foreach>
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(siteCode)">
+					MENU_AUTH_SITECODE = #{siteCode}
+				</when>
+				<otherwise>
+					MENU_AUTH_IDX = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(menuAuthIdx)}
+				</otherwise>
+			</choose>
+		</where>
+	</update>
+
+	<delete id="deleteMenuAuthItem" parameterType="itgMap">
+		/*deleteMenuAuthItem*/
+		DELETE from T_MENU_AUTH_ITEM
+		<where>
+			<choose>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngId)">
+					MENU_AUTH_IDX in (select MENU_AUTH_IDX from T_MENU_AUTH where MENU_AUTH_NAME = #{mngId} and MENU_AUTH_TYPE = '0')
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngIds)">
+					MENU_AUTH_IDX in (select MENU_AUTH_IDX from T_MENU_AUTH where MENU_AUTH_TYPE = '0' and MENU_AUTH_NAME in
+							<foreach item="item" open="(" close=")" separator="," collection="mngIds">#{item}</foreach>)
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(siteCode)">
+					MENU_AUTH_IDX in (select MENU_AUTH_IDX from T_MENU_AUTH where MENU_AUTH_SITECODE = #{siteCode})
+				</when>
+				<otherwise>
+					MENU_AUTH_IDX = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(menuAuthIdx)}
+				</otherwise>
+			</choose>
+		</where>
+	</delete>
+
+	<delete id="deleteManagerMenuAuth" parameterType="itgMap">
+		/*deleteManagerMenuAuth*/
+		DELETE from T_MANAGER_MENU_AUTH
+		<where>
+			<choose>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngId)">
+					MNG_ID = #{mngId}
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(mngIds)">
+					MNG_ID in <foreach item="item" open="(" close=")" separator="," collection="mngIds">#{item}</foreach>
+				</when>
+				<when test="@egovframework.itgcms.util.CommUtil@notEmpty(siteCode)">
+					MENU_AUTH_IDX in (select MENU_AUTH_IDX from T_MENU_AUTH where MENU_AUTH_SITECODE = #{siteCode})
+				</when>
+				<otherwise>
+					MANAGER_MENU_AUTH_IDX = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(optStr)}
+				</otherwise>
+			</choose>
+		</where>
+	</delete>
+</mapper>

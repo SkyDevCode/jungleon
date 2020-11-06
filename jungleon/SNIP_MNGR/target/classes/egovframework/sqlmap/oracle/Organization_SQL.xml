@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.organization.service.impl.OrganizationMapper">
+
+	<!-- 조직도 부서목록 불러오기  -->
+	<select id="selectOrganizationList" resultType="itgMap">
+		/*selectOrganizationList*/
+		SELECT
+			or_name,
+			or_pcode,
+			or_depth,
+			or_code
+		FROM t_organization
+		WHERE or_del_yn = 'N'
+		ORDER BY
+			or_order ASC
+	</select>
+
+	<!-- 조직도 상세정보 보기 -->
+	<select id="selectOrganizationView" resultType="itgMap">
+		/*selectOrganizationView*/
+		SELECT
+			or_code,
+			or_name,
+			or_tel,
+			or_fax,
+			or_memo,
+			or_pcode,
+			or_order
+		FROM t_organization
+		WHERE or_code = #{schCode}
+	</select>
+
+	<!-- 조직도 코드 중복 검사 -->
+	<select id="selectOrganizationDupl" resultType="int">
+		/*selectOrganizationDupl*/
+		SELECT
+			count(*)
+		FROM t_organization
+		WHERE or_code = #{orCode}
+	</select>
+
+	<!-- 조직도 자식 노드 검사 -->
+	<select id="selectOrganizationSubTree" resultType="int">
+		/*selectOrganizationSubTree*/
+		SELECT
+			count(*)
+		FROM t_organization
+		WHERE or_pcode = #{orCode}
+		AND or_del_yn = 'N'
+	</select>
+
+	<!-- 조직도 부서 등록 -->
+	<insert id="insertOrganization">
+		/* insertOrganization */
+		INSERT INTO t_organization (
+			or_code,
+			or_name,
+			or_tel,
+			or_fax,
+			or_memo,
+			or_pcode,
+			or_depth,
+			or_order,
+			or_reg_dt,
+			or_reg_id,
+			or_del_yn
+		)VALUES(
+			#{orCode},
+			#{orName},
+			#{orTel},
+			#{orFax},
+			#{orMemo},
+			#{orPcode},
+			(
+			SELECT * FROM (SELECT NVL(MAX(or_depth), 0) + 1 FROM t_organization WHERE or_code = #{orPcode}) or_depth
+			),
+			(
+			SELECT * FROM (SELECT NVL(MAX(or_order), 0) + 1 FROM t_organization WHERE or_pcode = #{orPcode}) or_order
+			),
+			SYSDATE,
+			#{orRegId},
+			'N'
+		)
+	</insert>
+
+	<!-- 조직도 부서 수정 -->
+	<update id="updateOrganization">
+		/* updateOrganization */
+		UPDATE t_organization SET
+			or_name = #{orName},
+			or_tel = #{orTel},
+			or_fax = #{orFax},
+			or_memo = #{orMemo},
+			or_upd_dt = SYSDATE,
+			or_upd_id = #{orUpdId}
+		WHERE or_code = #{orCode}
+	</update>
+
+	<!-- 조직도 부서 삭제 -->
+	<update id="deleteOrganization">
+		/* updateOrganization */
+		UPDATE t_organization SET
+			or_del_yn = 'Y',
+			or_del_dt = SYSDATE,
+			or_del_id = #{orDelId}
+		WHERE or_code = #{orCode}
+	</update>
+
+	<!-- 조직도 위치 변경대상 불러오기  -->
+	<select id="selectOrganizationSwapTarget" resultType="itgMap">
+	/*selectOrganizationSwapTarget*/
+	select * from
+		(select
+			a.or_depth,
+			a.or_pcode,
+			a.or_order
+		from t_organization a
+		where a.or_del_yn = 'N'
+		<choose>
+			<when test="swaptype eq 'UP'">
+				and or_order &lt; (select or_order from t_organization where or_code= #{id} and or_pcode = a.or_pcode and or_del_yn = 'N')
+				order by or_order desc
+			</when>
+			<when test="swaptype eq 'DOWN'">
+				and or_order &gt; (select or_order from t_organization where or_code= #{id} and or_pcode = a.or_pcode and or_del_yn = 'N')
+				order by or_order asc
+			</when>
+		</choose>
+		)
+		where rownum &lt; 2
+    </select>
+
+	<!-- 부서 위치 변경 -->
+    <update id="updateOrganizationUpDown">
+    /*updateOrganizationUpDown*/
+    	update t_organization set
+    		or_order = #{orOrder}
+    	where
+    		or_code = #{orCode}
+    </update>
+</mapper>

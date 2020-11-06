@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.comment.service.impl.CommentMapper">
+	<sql id="commenetColums">
+
+	</sql>
+
+	<select id="commentListByBdIdx" parameterType="egovframework.itgcms.core.comment.service.CommentVO"
+		resultType="egovframework.itgcms.core.comment.service.CommentVO">
+	SELECT * from (
+		SELECT
+			ceiling(row_number() over (order by c_reidx asc, c_idx asc) / cast(#{recordCountPerPage} as float)) AS page,
+			c_idx,
+			c_writer,
+			c_contents,
+			regmemid,
+			regdt,
+			updmemid,
+			upddt,
+			delyn,
+			delmemid,
+			deldt,
+			bd_idx,
+			c_reidx,
+			c_recomid,
+			c_recomname
+		FROM t_comment
+		WHERE
+			bd_idx=#{bdIdx}
+			AND delyn='N'
+	) tb
+	WHERE
+		page = (cast(#{firstIndex} as float) / cast(#{recordCountPerPage} as float)) + 1
+	</select>
+
+	<select id="countCommentTotalCount" parameterType="egovframework.itgcms.core.comment.service.CommentVO"
+		resultType="int">
+		SELECT
+			COUNT(1)
+		FROM t_comment
+		WHERE
+			bd_idx=#{bdIdx}
+			AND delyn = 'N'
+	</select>
+
+	<insert id="registComment" parameterType="egovframework.itgcms.core.comment.service.CommentVO">
+		<selectKey resultType="int" keyProperty="cIdx" order="BEFORE">
+			select isnull(max(c_idx), 0)+1 as c_idx from t_comment
+		</selectKey>
+		INSERT INTO t_comment
+		(
+			c_writer,
+			c_contents,
+			regmemid,
+			regdt,
+			delyn,
+			bd_idx,
+			c_reidx
+		)
+		VALUES
+		(
+			(ISNULL((select mng_name FROM t_manager WHERE mng_id=#{regMemId}),(SELECT name FROM t_member where id =#{regMemId}))),
+			#{cContents},
+			#{regMemId},
+			GETDATE(),
+			'N',
+			#{bdIdx},
+			#{cIdx}
+		)
+	</insert>
+
+	<insert id="registReComment" parameterType="egovframework.itgcms.core.comment.service.CommentVO">
+		INSERT INTO t_comment
+		(
+			c_writer,
+			c_contents,
+			regmemid,
+			regdt,
+			delyn,
+			bd_idx,
+			c_reidx,
+			c_recomid
+		)
+		VALUES
+		(
+			(ISNULL((select mng_name FROM t_manager WHERE mng_id=#{regMemId}),(SELECT name FROM t_member where id =#{regMemId}))),
+			#{cContents},
+			#{regMemId},
+			GETDATE(),
+			'N',
+			#{bdIdx},
+			#{cReIdx},
+			#{cReComId}
+		)
+	</insert>
+
+	<update id="modifyComment" parameterType="egovframework.itgcms.core.comment.service.CommentVO">
+		UPDATE t_comment SET
+			c_contents = #{cContents},
+			updmemid = #{updMemId},
+			upddt = GETDATE()
+		WHERE
+			c_idx = #{cIdx}
+	</update>
+
+	<update id="deleteComment" parameterType="egovframework.itgcms.core.comment.service.CommentVO">
+		UPDATE t_comment SET
+			delyn='Y',
+			delmemid = #{delMemId},
+			deldt = GETDATE()
+		WHERE
+			c_idx = #{cIdx}
+	</update>
+
+	<select id="countReComment" resultType="int" parameterType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			t_comment
+		WHERE
+			c_reidx = #{cIdx}
+	</select>
+</mapper>

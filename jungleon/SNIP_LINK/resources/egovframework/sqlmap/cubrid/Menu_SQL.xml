@@ -1,0 +1,1145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.menu.service.impl.MngrMenuMapper">
+
+	<resultMap id="menu" type="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		<result property="menuIdx" column="menu_idx" />
+		<result property="menuCode" column="menu_code" />
+		<result property="menuName" column="menu_name" />
+		<result property="menuType" column="menu_type" />
+		<result property="menuSubType" column="menu_subType" />
+		<result property="menuUrl" column="menu_url" />
+		<result property="menuUrl2" column="menu_url2" />
+		<result property="menuNavi" column="menu_navi" />
+		<result property="menuDepth" column="menu_depth" />
+		<result property="menuPcode" column="menu_pcode" />
+		<result property="menuOrder" column="menu_order" />
+		<result property="menuMemo" column="menu_memo" />
+		<result property="menuOldpfullname" column="menuOldpfullname" />
+		<result property="menuUseyn" column="menu_useyn" />
+		<result property="regdt" column="regdt" />
+		<result property="upddt" column="upddt" />
+		<result property="deldt" column="deldt" />
+		<result property="regmemid" column="regmemid" />
+		<result property="updmemid" column="updmemid" />
+		<result property="delmemid" column="delmemid" />
+		<result property="delyn" column="delyn" />
+		<result property="subtree" column="subtree" />
+		<result property="menuShowtype" column="menu_showtype" />
+		<result property="menuMngurl" column="menu_mngurl" />
+		<result property="menuChargeuseyn" column="menu_chargeuseyn" />
+		<result property="mngId" column="mng_id" />
+		<result property="mngName" column="mng_name" />
+		<result property="menuLnbuseyn" column="menu_lnbuseyn" />
+		<result property="menuResearchuseyn" column="menu_researchuseyn" />
+		<result property="menuPfullname" column="menu_pfullname" />
+		<result property="menuPfullcode" column="menu_pfullcode" />
+		<result property="menuUsetype" column="menu_usetype" />
+		<result property="menuContents" column="menu_contents" />
+		<result property="menuQruseyn" column="menu_qruseyn" />
+		<result property="menuSnsShareyn" column="menu_snsshareyn" />
+		<result property="menuUseFixwidth" column="menu_usefixwidth" />
+		<result property="menuFullorder" column="menu_fullorder" />
+		<result property="siteCode" column="menu_sitecode" />
+	</resultMap>
+
+	<resultMap id="menuJoinManager" extends="menu" type="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		<collection property="mngrManagerVO" ofType="egovframework.itgcms.core.manager.service.MngrManagerVO">
+			<id column="mng_id" jdbcType="VARCHAR" />
+			<result property="mngName" column="mng_name" />
+			<result property="mngPhone" column="mng_phone" />
+			<result property="groupCodeName" column="groupCodeName" />
+			<result property="mngEmail" column="mng_email" />
+		</collection>
+	</resultMap>
+
+
+	<resultMap type="egovframework.itgcms.core.menu.service.MngrMenuVO" id="menuContentsMap">
+		<result property="id" column="mc_idx" />
+		<result property="menuIdx" column="menu_idx" />
+		<result property="menuCode" column="menu_code" />
+		<result property="menuContents" column="mc_content" />
+		<result property="menuMemo" column="mc_memo" />
+		<result property="etc2" column="mc_previewyn" />
+		<result property="regdt" column="regdt" />
+		<result property="deldt" column="deldt" />
+		<result property="regmemid" column="regmemid" />
+		<result property="delmemid" column="delmemid" />
+		<result property="delyn" column="delyn" />
+		<result property="revisionNum" column="revisionNum" />
+		<result property="menuType" column="menuType" />
+		<result property="siteCode" column="sitecode" />
+	</resultMap>
+
+	<sql id="pageBefore">
+		SELECT * FROM
+			(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+			) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+	<sql id="pageAfterTop1">
+		) RN
+			) WHERE RNUM = 1
+	</sql>
+	<sql id="pageAfterZeroToOne">
+		) RN
+			) WHERE RNUM &gt; 0 AND RNUM &lt;= 1
+	</sql>
+
+	<select id="selectMngrTreeSubList" parameterType="EgovMap"  resultMap="menu">
+	/***** selectMngrTreeSubList *****/
+		select
+			a.menu_idx,
+			a.menu_sitecode,
+			a.menu_code,
+			a.menu_name,
+			a.menu_type,
+			a.menu_subType,
+			a.menu_url,
+			a.menu_navi ,
+			a.menu_depth,
+			a.menu_pcode,
+			a.menu_order,
+			a.menu_memo,
+			a.menu_useyn,
+			a.menu_showtype,
+			a.menu_mngurl,
+			a.menu_chargeuseyn,
+			a.mng_id,
+			a.menu_lnbuseyn,
+			a.menu_researchuseyn,
+			a.menu_pfullname,
+			a.menu_pfullcode,
+			a.menu_usetype,
+			a.menu_contents,
+			a.menu_qruseyn,
+			a.menu_fullorder,
+			<!-- 컬럼추가 -->
+			(select count(*) from t_menu b where b.menu_pcode = a.menu_code and b.delyn = 'N') subtree,
+			mng.mng_name
+		from t_menu a
+		left join t_manager mng on a.mng_id = mng.mng_id
+		where a.delyn = 'N'
+		and menu_sitecode = #{siteCode}
+		order by a.menu_depth, a.menu_order
+	</select>
+
+	<select id="selectMngrMenuRegistAjax" parameterType="egovframework.itgcms.core.menu.service.MngrMenuSearchVO" resultMap="menuJoinManager" >
+	/***** selectMngrMenuRegistAjax *****/
+		select
+			a.menu_idx,
+			a.menu_sitecode,
+			a.menu_code,
+			a.menu_name,
+			a.menu_type,
+			a.menu_subType,
+			a.menu_url,
+			a.menu_navi,
+			a.menu_depth,
+			a.menu_pcode,
+			a.menu_order,
+			a.menu_memo,
+			a.menu_useyn,
+			CAST(A.REGDT as DATE ) AS REGDT,
+			CAST(A.UPDDT as DATE ) AS UPDDT,
+			CAST(A.DELDT as DATE ) AS DELDT,
+			a.regmemid,
+			a.updmemid,
+			a.delmemid,
+			a.delyn,
+			a.menu_showtype,
+			a.menu_mngurl,
+			a.menu_chargeuseyn,
+			a.mng_id,
+			a.menu_lnbuseyn,
+			a.menu_researchuseyn,
+			a.menu_usetype,
+			a.menu_contents,
+			a.menu_qruseyn,
+			a.menu_snsshareyn,
+			a.menu_usefixwidth,
+			<!-- 컬럼추가 -->
+			(select count(*) from t_menu  where menu_pcode = a.menu_code and delyn = 'N') subtree,
+			<choose>
+				<when test="act == 'REGIST'">
+					a.menu_pfullname,
+					a.menu_pfullcode,
+
+					b.menu_fullorder,
+				</when>
+				<when test="act == 'UPDATE'">
+					b.menu_pfullname,<!-- 주의 : 등록 수정시에는 부모메뉴의 풀네임, 풀코드 사용. 해당 메뉴의 풀네임, 풀코드는 부모의 풀네임 + 메뉴명, 부모의 풀코드 + 코드명-->
+					b.menu_pfullcode,
+
+					b.menu_fullorder,
+				</when>
+				<otherwise><!-- regist, update 아닌경우는 메뉴정보를 가져오는 부분이니까 제대로된 풀경로를 가져온다. -->
+					a.menu_pfullname,
+					a.menu_pfullcode,
+					a.menu_fullorder,
+				</otherwise>
+			</choose>
+			mng.mng_name,
+			mng.mng_phone,
+			mng.mng_email,
+			grp.c_name groupCodeName
+		from t_menu a
+		left join t_menu b on a.menu_pcode = b.menu_code
+		left join t_manager mng on a.mng_id = mng.mng_id
+		left join t_code grp on  mng.group_code = grp.c_code
+		where
+			a.delyn = 'N'
+			and a.menu_code = #{id}
+	</select>
+
+	<select id="mngrMenuDupleCheck" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO" resultType="int">
+	/***** mngrMenuDupleCheck *****/
+		select
+			count(*) cnt
+		from t_menu
+		where menu_code = #{menuCode}
+		<if test="id != null and id != '' and act == 'UPDATE'">
+			and menu_code &lt;&gt; #{id}
+		</if>
+	</select>
+
+	<insert id="insertMngrMenuProc" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/***** insertMngrMenuProc *****/
+		insert into t_menu(
+		menu_idx,
+		menu_code,
+		menu_name,
+		menu_type,
+		menu_subType,
+		menu_url,
+		menu_navi,
+		menu_depth,
+		menu_pcode,
+		menu_order,
+		menu_memo,
+		menu_useyn,
+		regdt,
+		regmemid,
+		delyn,
+		menu_showtype,
+		<if test="menuMngurl != null and menuMngurl != ''"> menu_mngurl,</if>
+		menu_chargeuseyn,
+		mng_id,
+		menu_lnbuseyn,
+		menu_researchuseyn,
+		menu_pfullname,
+		menu_pfullcode,
+		menu_usetype,
+		menu_contents,
+		menu_qruseyn,
+		menu_snsshareyn,
+		menu_usefixwidth,
+		menu_sitecode,
+		menu_fullorder
+		<!-- 컬럼추가 -->
+		)VALUES(
+		t_menu_seq.nextval,
+		#{menuCode},
+		#{menuName},
+		#{menuType},
+		#{menuSubType},
+		#{menuUrl},
+		#{menuNavi},
+		( SELECT * FROM (SELECT NVL(MAX(menu_depth), 0)+1 FROM t_menu WHERE menu_code = #{id}) menu_depth ),
+		#{id},
+		( SELECT * FROM (SELECT NVL(MAX(menu_order), 0)+1 FROM t_menu WHERE menu_pcode = #{id}) menu_order ),
+		#{menuMemo},
+		#{menuUseyn},
+		CURRENT_TIMESTAMP,
+		#{regmemid},
+		'N',
+		#{menuShowtype},
+		<if test="menuMngurl != null and menuMngurl != ''"> #{menuMngurl},</if>
+		#{menuChargeuseyn},
+		#{mngId},
+		#{menuLnbuseyn},
+		#{menuResearchuseyn},
+		#{menuPfullname}|| '>'|| #{menuName},
+		#{menuPfullcode}|| '>'|| #{menuCode},
+		#{menuUsetype},
+		#{menuContents},
+		#{menuQruseyn},
+		#{menuSnsShareyn},
+		#{menuUseFixwidth},
+		#{siteCode},
+		CONCAT(
+			(SELECT * FROM (SELECT NVL(menu_fullorder, '') FROM t_menu WHERE menu_code = #{id}) tmp)
+			,SUBSTR(CONCAT('000', (SELECT * FROM (SELECT NVL(MAX(menu_order), 0)+1 FROM t_menu WHERE menu_pcode = #{id}) tmp)), -3)
+		)
+		<!-- 컬럼추가 -->
+		)
+	</insert>
+
+
+	<update id="updateMngrMenuProc" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+	/***** updateMngrMenuProc *****/
+		update t_menu
+		set
+			menu_name = #{menuName}
+			,menu_type = #{menuType}
+			,menu_subType = #{menuSubType}
+			,menu_url = #{menuUrl}
+			,menu_navi = #{menuNavi}
+			,menu_useyn = #{menuUseyn}
+			,upddt = CURRENT_TIMESTAMP
+			,updmemid = #{updmemid}
+			,menu_showtype = #{menuShowtype}
+			,menu_mngurl = #{menuMngurl}
+			,menu_chargeuseyn = #{menuChargeuseyn}
+			,mng_id = #{mngId}
+			,menu_lnbuseyn = #{menuLnbuseyn}
+			,menu_researchuseyn = #{menuResearchuseyn}
+			,menu_memo = #{menuMemo}
+			<!-- ,menu_pfullname = concat(#{menuPfullname}, '>', #{menuName}) 전체경로는 풀네임 수정기능에서 처리됨-->
+			<!-- ,menu_pfullcode = #{menuPfullcode} 코드는 수정하면 안된다. -->
+			,menu_usetype = #{menuUsetype}
+			<if test="menuContents != null and menuContents != ''">
+			,menu_contents = #{menuContents}
+			</if>
+			,menu_qruseyn = #{menuQruseyn}
+			,menu_snsshareyn = #{menuSnsShareyn}
+			,menu_usefixwidth = #{menuUseFixwidth}
+			<!-- ,menu_fullorder = #{menuFullorder} 수정시에 변경하면 안됨 -->
+			<!-- 컬럼추가 -->
+<!-- 			, menu_sitecode = #{siteCode} -->
+		where
+			delyn = 'N'
+			and menu_code = #{id}
+
+	</update>
+	<!-- 메뉴명 수정시 하위 메뉴의 풀네임 수정 -->
+	<update id="mngrMenuUpdateProcSubmenufullname" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+	/***** mngrMenuUpdateProcSubmenufullname *****/
+		<!-- update t_menu
+		set
+			menu_pfullname = #{menuPfullname}|| '>'|| #{menuName}|| substr(menu_pfullname, length(#{menuOldpfullname}) + 1)
+		where
+		    menu_pfullcode like #{menuPfullcode}||'>'|| #{menuCode}|| '%' --> <!--  부모 풀코드 > 현재코드 % -->
+
+		update t_menu
+		set
+			menu_pfullname = replace(menu_pfullname , #{menuOldpfullname}, concat(#{menuPfullname} , '>' , #{menuName} ) )
+		where
+			menu_code &lt;&gt;  #{menuCode}
+			and menu_pfullcode like concat(#{menuPfullcode}, '%')
+	</update>
+	<!-- 메뉴 이동시 메뉴의 부모코드가 바뀌므로 이동한 메뉴와 하위메뉴의 풀코드가 변경되어야 한다. -->
+	<update id="mngrMenuUpdateProcSubmenufullcode" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+	/***** mngrMenuUpdateProcSubmenufullcode *****/
+		update t_menu
+		set
+			menu_pfullname = #{menuPfullname}|| '>'|| #{menuName}|| substr(menu_pfullname, length(#{menuOldpfullname}) + 1)
+			,menu_pfullcode = #{menuPfullcode}|| '>'|| #{menuCode}|| substr(menu_pfullcode, length(#{menuOldpfullcode}) + 1)
+			where
+		    menu_pfullcode like #{menuOldpfullcode}|| '%'
+	</update>
+
+
+	<select id="mngrMenuSubCount"  parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO" resultType="int">
+	/***** mngrMenuSubCount *****/
+		select count(*) from t_menu where menu_pcode = #{id} and delyn = 'N'
+	</select>
+
+	<update id="deleteMngrMenuRegistAjax" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+	/***** deleteMngrMenuRegistAjax *****/
+		update
+			t_menu
+		set
+			menu_code   = menu_code ||DATE_FORMAT(SYSDATETIME, '%y%j%H%i%s'),
+			delyn = 'Y'
+			, deldt = CURRENT_TIMESTAMP
+			, delmemid = #{delmemid}
+		where
+			menu_code = #{id}
+	</update>
+	<select id="mngrMenuSwapTarget" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO" resultMap="menu">
+	/***** mngrMenuSwapTarget *****/
+
+	select * from
+		(select
+			a.menu_idx,
+			a.menu_sitecode,
+			a.menu_code,
+			a.menu_name,
+			a.menu_depth,
+			a.menu_pcode,
+			a.menu_order,
+			a.menu_useyn
+		from t_menu a
+		where a.delyn = 'N'
+		<choose>
+			<when test="swaptype eq 'UP'">
+				and menu_order &lt; (select menu_order from t_menu where menu_code= #{id} and menu_pcode = a.menu_pcode and delyn = 'N')
+				order by menu_order desc
+			</when>
+			<when test="swaptype eq 'DOWN'">
+				and menu_order &gt; (select menu_order from t_menu where menu_code= #{id} and menu_pcode = a.menu_pcode and delyn = 'N')
+				order by menu_order asc
+			</when>
+		</choose>
+		)
+		where rownum &lt; 2
+    </select>
+
+
+    <update id="mngrMenuSwap">
+    /***** mngrMenuSwap *****/
+    	update t_menu set
+    		menu_order = #{menuOrder}
+    	where
+    		menu_code = #{menuCode}
+    </update>
+
+
+    <update id="mngrMenuMove">
+		/***** mngrMenuMove *****/
+		UPDATE t_menu SET
+		menu_pcode = #{menuPcode}
+		, menu_order = (SELECT * FROM (SELECT NVL(MAX(menu_order), 0)+1 FROM t_menu WHERE menu_pcode = #{menuPcode}) menu_order)
+		, menu_sitecode = #{siteCode}
+		WHERE menu_code = #{menuCode}
+	</update>
+
+
+    <update id="mngrMenuMoveUpdateDepth">
+		/***** mngrMenuMoveUpdateDepth *****/
+		UPDATE t_menu
+		SET
+		menu_depth = menu_depth + #{menuMoveDepth}
+		WHERE
+		menu_pfullcode LIKE CONCAT(#{menuOldpfullcode}, '%')
+    </update>
+
+
+    <resultMap id="recursiveMenu" extends="menu" type="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		<id property="id" column="menu_code" /><!-- 필수 설정 primary key -->
+		<result property="minDepth" column="minDepth" />
+		<result property="maxDepth" column="maxDepth" />
+		<result property="schOpt1" column="schOpt1" />
+		<association property="mngrMenuList" column="{id=menu_code,minDepth=minDepth,maxDepth=maxDepth,schOpt1=schOpt1}" select="mngrMenuListRecursive" />
+	</resultMap>
+
+
+    <select id="mngrMenuListRecursive" resultMap="recursiveMenu">
+		/***** mngrMenuListRecursive *****/
+		SELECT
+		a.menu_idx,
+		a.menu_sitecode,
+		a.menu_code,
+		a.menu_name,
+		a.menu_type,
+		a.menu_subType,
+		(case
+            when a.menu_type='2' then '/'||menu_sitecode||'/module/' || a.menu_code || '_'||menu_url||'.do'
+            when a.menu_type='3' then '/user/board/' || a.menu_code || '_'||menu_url||'.do'
+            else a.menu_url
+        end) menu_url,
+		a.menu_navi ,
+		a.menu_depth,
+		a.menu_pcode,
+		a.menu_order,
+		a.menu_memo,
+		a.menu_useyn,
+		a.menu_showtype,
+		(case
+            when a.menu_type='1' then '/_mngr_/contents/' || a.menu_code || '_view.do'
+            when a.menu_type='2' then
+            	case when (a.menu_mngurl='-' or a.menu_mngurl is null) then '/_mngr_/menu/' || a.menu_code || '_comm_defaultView.do'
+            	else '/_mngr_/module/' || a.menu_code || '_'||menu_mngurl||'.do' end
+            when a.menu_type='3' then '/_mngr_/board/' || a.menu_code || '_'||menu_mngurl||'.do'
+            else a.menu_mngurl
+        end) menu_mngurl,
+		a.menu_chargeuseyn,
+		a.mng_id,
+		a.menu_lnbuseyn,
+		a.menu_researchuseyn,
+		a.menu_pfullname,
+		a.menu_pfullcode,
+		a.menu_usetype,
+		<!-- a.menu_contents, -->
+		a.menu_qruseyn,
+		a.menu_snsshareyn,
+		a.menu_usefixwidth,
+		a.menu_fullorder,
+		<!-- 컬럼추가 -->
+		#{minDepth} minDepth,
+		#{maxDepth} maxDepth,
+		#{schOpt1} schOpt1,
+		(select count(*) from t_menu b where b.menu_pcode = a.menu_code and b.delyn = 'N') subtree
+		FROM t_menu a
+		WHERE a.delyn = 'N'
+		<if test='schOpt1 != null and schOpt1 != ""'>
+			AND a.menu_code in (${@egovframework.itgcms.util.CommUtil@sqlInjetFilter2nd(schOpt1)})
+		</if>
+		AND a.menu_useyn = 'Y'
+		<if test="id != null and id != ''">
+			AND menu_pcode = #{id}
+		</if>
+		AND a.menu_depth &gt;= #{minDepth}
+		ORDER BY a.menu_depth, a.menu_order
+	</select>
+
+	<select id="selectMngrMenuView" parameterType="egovframework.itgcms.core.menu.service.MngrMenuSearchVO" resultMap="menuJoinManager">
+		/***** selectMngrMenuView *****/
+		SELECT
+		a.menu_idx,
+		a.menu_sitecode,
+		a.menu_code,
+		a.menu_name,
+		a.menu_type,
+		a.menu_subType,
+		a.menu_url,
+		(case
+            when a.menu_type='2' then '/'||menu_sitecode||'/module/' || a.menu_code || '_'||menu_url||'.do'
+            when a.menu_type='3' then '/user/board/' || a.menu_code || '_'||menu_url||'.do'
+            else a.menu_url
+        end) menu_url2,
+		a.menu_navi,
+		a.menu_depth,
+		a.menu_pcode,
+		a.menu_order,
+		a.menu_memo,
+		a.menu_useyn,
+		CAST(A.REGDT as DATE ) AS REGDT,
+		CAST(A.UPDDT as DATE ) AS UPDDT,
+		CAST(A.DELDT as DATE ) AS DELDT,
+		a.regmemid,
+		a.updmemid,
+		a.delmemid,
+		a.delyn,
+		a.menu_showtype,
+		a.menu_mngurl,
+		a.menu_chargeuseyn,
+		a.mng_id,
+		a.menu_lnbuseyn,
+		a.menu_researchuseyn,
+		a.menu_usetype,
+		a.menu_contents,
+		a.menu_qruseyn,
+		a.menu_snsshareyn,
+		a.menu_usefixwidth,
+		a.menu_fullorder,
+		<!-- 컬럼추가 -->
+		(SELECT COUNT(*) FROM t_menu WHERE menu_pcode = a.menu_code AND delyn = 'N') subtree,
+		a.menu_pfullname,
+		a.menu_pfullcode,
+		mng.mng_name,
+		mng.mng_phone,
+		mng.mng_email,
+		grp.c_name groupCodeName
+		FROM t_menu a
+		LEFT JOIN t_manager mng ON a.mng_id = mng.mng_id
+		LEFT JOIN t_code grp ON mng.group_code = grp.c_code
+		WHERE
+		a.delyn = 'N'
+		<choose>
+			<when test="schId != null and schId !=''">
+				AND a.menu_idx = #{schId}
+			</when>
+			<otherwise>
+				AND a.menu_code = #{id}
+			</otherwise>
+		</choose>
+
+	</select>
+
+	<update id="mngrContentsUpdateProc">
+		/***** mngrContentsUpdateProc *****/
+		UPDATE t_menu SET
+		menu_contents = #{menuContents},
+		updmemid = #{updmemid},
+		upddt = CURRENT_TIMESTAMP
+		WHERE
+		menu_code = #{id}
+	</update>
+
+	<select id="mngrMenuSubList" parameterType="egovframework.itgcms.core.menu.service.MngrMenuSearchVO" resultMap="menu">
+		/***** mngrMenuSubList *****/
+		SELECT
+		a.menu_idx,
+		a.menu_sitecode,
+		a.menu_code,
+		a.menu_name,
+		a.menu_type,
+		a.menu_subType,
+		a.menu_url,
+		a.menu_navi,
+		a.menu_depth,
+		a.menu_pcode,
+		a.menu_order,
+		a.menu_memo,
+		a.menu_useyn,
+		CAST(A.REGDT as DATE ) AS REGDT,
+		CAST(A.UPDDT as DATE ) AS UPDDT,
+		CAST(A.DELDT as DATE ) AS DELDT,
+		a.regmemid,
+		a.updmemid,
+		a.delmemid,
+		a.delyn,
+		a.menu_showtype,
+		a.menu_mngurl,
+		a.menu_chargeuseyn,
+		a.mng_id,
+		a.menu_lnbuseyn,
+		a.menu_researchuseyn,
+		a.menu_usetype,
+		a.menu_contents,
+		a.menu_qruseyn,
+		a.menu_snsshareyn,
+		a.menu_usefixwidth,
+		a.menu_fullorder,
+		<!-- 컬럼추가 -->
+		(SELECT COUNT(*) FROM t_menu WHERE menu_pcode = a.menu_code AND delyn = 'N') subtree,
+		a.menu_pfullname,
+		a.menu_pfullcode,
+		mng.mng_name,
+		mng.mng_phone,
+		mng.mng_email,
+		grp.c_name groupCodeName
+		FROM t_menu a
+		LEFT JOIN t_manager mng ON a.mng_id = mng.mng_id
+		LEFT JOIN t_code grp ON mng.group_code = grp.c_code
+		WHERE
+		a.delyn = 'N' AND a.menu_pcode = #{id}
+		ORDER BY a.menu_order
+	</select>
+
+	<!-- 사이트관리에서 사이트 삭제 시 해당 메뉴를 모두 삭제함 -->
+	<delete id="mngrMenuDelAllSiteMenu">
+		DELETE FROM t_menu WHERE menu_sitecode = #{id}
+	</delete>
+
+	<insert id="insertMngrMenuSatisfaction">
+		/***** insertMngrMenuSatisfaction *****/
+		INSERT INTO t_menu_satisfaction(
+		menu_code,
+		id,
+		type,
+		answer1,
+		answer2,
+		answer3,
+		answer4,
+		answer5,
+		answer6,
+		regdt,
+		ip
+		) VALUES (
+		#{menuCode},
+		#{id},
+		#{type},
+		#{answer1},
+		#{answer2},
+		#{answer3},
+		#{answer4},
+		#{answer5},
+		#{answer6},
+		CURRENT_TIMESTAMP,
+		#{ip}
+		)
+	</insert>
+
+	<select id="selectMngrMenuSatisfactionList" resultType="egovframework.itgcms.core.menu.service.MngrMenuSatisfactionVO">
+		/***** selectMngrMenuSatisfactionList *****/
+		SELECT
+		a.menu_code menuCode,
+		a.menu_name menuName,
+		a.menu_depth menuDepth,
+		a.menu_pfullname menuPfullname,
+		a.menu_pfullcode menuPfullcode,
+		b.satis1_5 satis15,
+		b.satis1_4 satis14,
+		b.satis1_3 satis13,
+		b.satis1_2 satis12,
+		b.satis1_1 satis11,
+		<!-- b.satis2_5 satis25, b.satis2_4 satis24, b.satis2_3 satis23, b.satis2_2
+			satis22, b.satis2_1 satis21, b.satis3_5 satis35, b.satis3_4 satis34, b.satis3_3
+			satis33, b.satis3_2 satis32, b.satis3_1 satis31, b.satis4_5 satis45, b.satis4_4
+			satis44, b.satis4_3 satis43, b.satis4_2 satis42, b.satis4_1 satis41, b.satis5_5
+			satis55, b.satis5_4 satis54, b.satis5_3 satis53, b.satis5_2 satis52, b.satis5_1
+			satis51, -->
+		b.answer1,
+		b.answer2,
+		b.answer3,
+		b.answer4,
+		b.answer5
+		FROM t_menu a
+		LEFT JOIN (
+		SELECT
+		menu_code,
+		sum(satis1_5) satis1_5,
+		sum(satis1_4) satis1_4,
+		sum(satis1_3) satis1_3,
+		sum(satis1_2) satis1_2,
+		sum(satis1_1) satis1_1,
+		<!-- sum(satis2_5) satis2_5, sum(satis2_4) satis2_4, sum(satis2_3) satis2_3,
+			sum(satis2_2) satis2_2, sum(satis2_1) satis2_1, sum(satis3_5) satis3_5, sum(satis3_4)
+			satis3_4, sum(satis3_3) satis3_3, sum(satis3_2) satis3_2, sum(satis3_1) satis3_1,
+			sum(satis4_5) satis4_5, sum(satis4_4) satis4_4, sum(satis4_3) satis4_3, sum(satis4_2)
+			satis4_2, sum(satis4_1) satis4_1, sum(satis5_5) satis5_5, sum(satis5_4) satis5_4,
+			sum(satis5_3) satis5_3, sum(satis5_2) satis5_2, sum(satis5_1) satis5_1, -->
+
+		sum(answer1) answer1,
+		sum(answer2) answer2,
+		sum(answer3) answer3,
+		sum(answer4) answer4,
+		sum(answer5) answer5
+		FROM (
+		SELECT
+		menu_code,
+		case when answer1 = 5 then 1 else 0 end satis1_5,
+		case when answer1 = 4 then 1 else 0 end satis1_4,
+		case when answer1 = 3 then 1 else 0 end satis1_3,
+		case when answer1 = 2 then 1 else 0 end satis1_2,
+		case when answer1 = 1 then 1 else 0 end satis1_1,
+		<!-- case when answer2 = 5 then 1 else 0 end satis2_5, case when answer2
+			= 4 then 1 else 0 end satis2_4, case when answer2 = 3 then 1 else 0 end satis2_3,
+			case when answer2 = 2 then 1 else 0 end satis2_2, case when answer2 = 1 then
+			1 else 0 end satis2_1, case when answer3 = 5 then 1 else 0 end satis3_5,
+			case when answer3 = 4 then 1 else 0 end satis3_4, case when answer3 = 3 then
+			1 else 0 end satis3_3, case when answer3 = 2 then 1 else 0 end satis3_2,
+			case when answer3 = 1 then 1 else 0 end satis3_1, case when answer4 = 5 then
+			1 else 0 end satis4_5, case when answer4 = 4 then 1 else 0 end satis4_4,
+			case when answer4 = 3 then 1 else 0 end satis4_3, case when answer4 = 2 then
+			1 else 0 end satis4_2, case when answer4 = 1 then 1 else 0 end satis4_1,
+			case when answer5 = 5 then 1 else 0 end satis5_5, case when answer5 = 4 then
+			1 else 0 end satis5_4, case when answer5 = 3 then 1 else 0 end satis5_3,
+			case when answer5 = 2 then 1 else 0 end satis5_2, case when answer5 = 1 then
+			1 else 0 end satis5_1, -->
+		answer1,
+		answer2,
+		answer3,
+		answer4,
+		answer5
+		FROM t_menu_satisfaction
+		WHERE 1=1
+		<if test="(schSdt != null and schSdt != '') and (schEdt != null and schEdt != '')">
+			AND regdt &gt; #{schSdt} AND regdt &lt; #{schEdt}
+		</if>
+		) t
+		GROUP BY menu_code
+		) b
+		ON a.menu_code = b.menu_code
+		WHERE a.delyn = 'N'
+		AND a.menu_researchuseyn = 'Y'
+		AND a.menu_pfullcode LIKE '>'|| #{schSitecode}|| '%'
+		ORDER BY b.answer1 DESC
+	</select>
+
+	<select id="selectMngrMenuSatisfactionListByMenuCode" resultType="egovframework.itgcms.core.menu.service.MngrMenuSatisfactionVO">
+		/***** selectMngrMenuSatisfactionListByMenuCode *****/
+		SELECT
+		b.menu_name menuName,
+		a.menu_code menuCode,
+		case when a.answer1 = 5 then 1 else 0 end satis1_5,
+		case when a.answer1 = 4 then 1 else 0 end satis1_4,
+		case when a.answer1 = 3 then 1 else 0 end satis1_3,
+		case when a.answer1 = 2 then 1 else 0 end satis1_2,
+		case when a.answer1 = 1 then 1 else 0 end satis1_1,
+		<!-- case when a.answer2 = 5 then 1 else 0 end satis2_5, case when a.answer2
+			= 4 then 1 else 0 end satis2_4, case when a.answer2 = 3 then 1 else 0 end
+			satis2_3, case when a.answer2 = 2 then 1 else 0 end satis2_2, case when a.answer2
+			= 1 then 1 else 0 end satis2_1, case when a.answer3 = 5 then 1 else 0 end
+			satis3_5, case when a.answer3 = 4 then 1 else 0 end satis3_4, case when a.answer3
+			= 3 then 1 else 0 end satis3_3, case when a.answer3 = 2 then 1 else 0 end
+			satis3_2, case when a.answer3 = 1 then 1 else 0 end satis3_1, case when a.answer4
+			= 5 then 1 else 0 end satis4_5, case when a.answer4 = 4 then 1 else 0 end
+			satis4_4, case when a.answer4 = 3 then 1 else 0 end satis4_3, case when a.answer4
+			= 2 then 1 else 0 end satis4_2, case when a.answer4 = 1 then 1 else 0 end
+			satis4_1, case when a.answer5 = 5 then 1 else 0 end satis5_5, case when a.answer5
+			= 4 then 1 else 0 end satis5_4, case when a.answer5 = 3 then 1 else 0 end
+			satis5_3, case when a.answer5 = 2 then 1 else 0 end satis5_2, case when a.answer5
+			= 1 then 1 else 0 end satis5_1, -->
+		a.answer1,
+		a.answer2,
+		a.answer3,
+		a.answer4,
+		a.answer5,
+		a.answer6,
+		CAST(A.REGDT as DATE ) AS REGDT,
+		a.ip
+		FROM t_menu_satisfaction a
+		JOIN t_menu b on a.menu_code = b.menu_code
+		WHERE 1=1
+		AND a.menu_code = #{id}
+		<if test="(schSdt != null and schSdt != '') and (schEdt != null and schEdt != '')">
+			AND a.regdt &gt; #{schSdt} AND a.regdt &lt; #{schEdt}
+		</if>
+		ORDER BY a.regdt DESC
+	</select>
+
+
+	<select id="selectMngrMenuSatisfactionView" resultType="egovframework.itgcms.core.menu.service.MngrMenuSatisfactionVO">
+		/***** selectMngrMenuSatisfactionView *****/
+		<include refid="pageBefore" />
+		SELECT
+		a.menu_code menuCode,
+		a.id,
+		a.type,
+		a.answer1,
+		a.answer2,
+		a.answer3,
+		a.answer4,
+		a.answer5,
+		a.answer6,
+		CAST(A.REGDT as DATE ) AS REGDT,
+		a.ip
+		FROM t_menu_satisfaction a
+		WHERE 1=1
+		<if test="id != null and id != ''">
+			AND a.id = #{id}
+		</if>
+		AND a.ip = #{ip}
+		AND a.menu_code = #{menuCode}
+		<include refid="pageAfterTop1" />
+	</select>
+
+
+	<select id="countMainPageContentsByIndex" resultType="int">
+		/***** countMainPageContentsByIndex *****/
+		SELECT
+		COUNT(menu_mainpage) FROM t_menu
+		WHERE
+		menu_pfullname LIKE '>'|| #{prefix}|| '%'
+		AND menu_mainpage = #{index}
+		AND menu_code != #{menuCode}
+	</select>
+
+	<select id="getBoardListbySitecode" parameterType="egovMap" resultType="egovMap">
+		/***** getBoardListbySitecode *****/
+		SELECT menu_code, menu_Name, menu_subType bc_id, menu_sitecode
+		FROM t_menu
+		WHERE delyn = 'N'
+		AND menu_type=3
+		AND menu_sitecode = #{siteCode}
+	</select>
+
+
+	<select id="getMenuInfoByBoardCode" parameterType="map" resultType="itgMap">
+		/* getMenuInfoByBoardCode*/
+		<include refid="pageBefore" />
+		SELECT
+		menu_code,
+		menu_sitecode AS site_code
+		FROM t_menu
+		WHERE
+		menu_subtype=#{boardCode}
+		<if test="siteCode != null">
+			AND menu_sitecode = #{siteCode}
+		</if>
+		ORDER BY regdt ASC
+		<include refid="pageAfterZeroToOne" />
+	</select>
+
+
+	<insert id="insertMenuContents" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/***** insertMenuContents ******/
+		INSERT INTO t_menu_contents
+		(
+		mc_idx,
+		menu_code,
+		mc_content,
+		mc_memo,
+		mc_previewyn,
+		regdt,
+		regmemid,
+		delyn
+		)
+		VALUES
+		(
+		T_MENU_CONTENTS_SEQ.nextval,
+		#{menuCode},
+		#{menuContents},
+		#{menuMemo},
+		#{etc2},
+		CURRENT_TIMESTAMP,
+		#{regmemid},
+		#{delyn}
+		)
+	</insert>
+
+	<select id="selectMenuContents" resultMap="menuContentsMap">
+		/***** selectMenuContents ******/
+		<include refid="pageBefore" />
+		SELECT mc_idx,
+		menu_code,
+		mc_content,
+		mc_memo,
+		mc_previewyn,
+		regdt,
+		deldt,
+		regmemid,
+		delmemid,
+		delyn,
+		(SELECT count(1) FROM t_menu_contents WHERE menu_code = #{menuCode} AND delyn='N') revisionNum,
+		(SELECT count(1) FROM t_menu_contents WHERE menu_code = #{menuCode}) revisionLogNum,
+		(SELECT menu_type FROM t_menu WHERE menu_code=#{menuCode}) menuType,
+		(SELECT menu_siteCode FROM t_menu WHERE menu_code=#{menuCode}) siteCode
+		FROM t_menu_contents
+		WHERE
+		menu_code = #{menuCode}
+		AND delyn='N'
+		ORDER BY mc_idx DESC
+		<include refid="pageAfterZeroToOne" />
+	</select>
+
+	<update id="updateTemporaryMenuContents" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/***** updateTemporaryMenuContents ******/
+		UPDATE t_menu_contents SET
+		mc_content = #{menuContents},
+		mc_memo = #{menuMemo},
+		regdt = CURRENT_TIMESTAMP,
+		regmemid = #{regmemid}
+		WHERE
+		regmemid=#{regmemid}
+		AND delyn='T'
+		AND menu_code=#{menuCode}
+	</update>
+
+	<select id="getTemporarySaved" resultMap="menuContentsMap" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/***** getTemporarySaved  ******/
+		<include refid="pageBefore"/>
+		SELECT
+			 menu_code,
+		    mc_content,
+		    mc_memo,
+		    mc_previewyn,
+		    regdt,
+		    deldt,
+		    regmemid,
+		    delmemid,
+		    delyn
+		FROM
+			t_menu_contents
+		WHERE
+			menu_code= #{menuCode}
+			AND regmemid=#{regmemid}
+			AND delyn='T'
+		ORDER BY mc_idx DESC
+		<include refid="pageAfterZeroToOne"/>
+	</select>
+
+	<delete id="deleteTemporaryMenuContent"  parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/*****  deleteTemporaryMenuContent *****/
+		DELETE
+		FROM
+			t_menu_contents
+		WHERE
+			menu_code = #{menuCode}
+			AND regmemid=#{regmemid}
+		    AND delyn = 'T'
+	</delete>
+
+
+	<sql id="revisionWhere">
+		<if test="schFld == 0">
+			AND
+				(
+					mc_content LIKE '%'|| #{schStr}|| '%'
+					OR mc_memo LIKE '%'|| #{schStr}|| '%'
+					OR regmemid LIKE '%'|| #{schStr}|| '%'
+				)
+		</if>
+		<if test="schFld == 1">
+			AND
+				(
+					mc_content LIKE '%'|| #{schStr}|| '%'
+					OR mc_memo LIKE '%'|| #{schStr}|| '%'
+				)
+		</if>
+		<if test="schFld == 2">
+			AND
+				regmemid LIKE '%'|| #{schStr}|| '%'
+		</if>
+	</sql>
+
+	<select id="selectRevisionList" resultMap="menuContentsMap" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/*****  selectRevisionList *****/
+		<include refid="pageBefore"/>
+		SELECT
+			mc_idx,
+			menu_code,
+		    mc_content,
+		    mc_memo,
+		    regdt,
+		    deldt,
+		    regmemid,
+		    delmemid,
+		    delyn
+		FROM
+			t_menu_contents
+		WHERE
+			menu_code = #{menuCode}
+			AND delyn != 'Y'
+			AND regmemid = #{regmemid}
+			<include refid="revisionWhere" />
+		ORDER BY
+			mc_idx DESC
+		<include refid="pageAfter"/>
+	</select>
+
+	<select id="mngrCountRevisionList" resultType="int" parameterType="egovframework.itgcms.core.menu.service.MngrMenuVO">
+		/*****  mngrCountRevisionList *****/
+		SELECT
+			COUNT(1)
+		FROM
+			t_menu_contents
+		WHERE
+			menu_code = #{menuCode}
+			AND delyn != 'Y'
+			AND regmemid = #{regmemid}
+			<include refid="revisionWhere" />
+		ORDER BY
+			mc_idx DESC
+	</select>
+
+	<select id="selectRevisionByIdx" resultMap="menuContentsMap">
+		SELECT
+		mc_idx,
+		menu_code,
+		mc_content,
+		mc_memo,
+		mc_previewyn,
+		regdt,
+		deldt,
+		regmemid,
+		delmemid,
+		delyn,
+		(SELECT count(1) FROM t_menu_contents WHERE menu_code = #{1} AND delyn='N') AS revisionNum,
+		(SELECT count(1) FROM t_menu_contents WHERE menu_code = #{1}) revisionLogNum,
+		(SELECT menu_type FROM t_menu WHERE menu_code=#{1}) AS menuType,
+		(SELECT menu_siteCode FROM t_menu WHERE menu_code=#{1}) AS siteCode
+		FROM t_menu_contents
+		WHERE
+		mc_idx = #{0}
+	</select>
+
+	<update id="deleteContentRevision">
+		UPDATE t_menu_contents SET
+			delyn='Y',
+			deldt = CURRENT_TIMESTAMP,
+			delmemid = #{regmemid}
+		WHERE mc_idx IN
+		<foreach item="item" index="index" open="(" close=")" separator="," collection="delIdxArr">
+			#{item}
+		</foreach>
+	</update>
+
+	<insert id="setMenuProgramInfo" parameterType="egovMap">
+		/*setMenuProgramInfo */
+		INSERT INTO t_menu_program
+		(
+		menu_code,
+		prog_idx,
+		mp_opt1,
+		mp_opt2
+		) VALUES (
+		#{menuCode},
+		#{progIdx},
+		#{mpOpt1},
+		#{mpOpt2}
+		)
+	</insert>
+
+	<select id="getMenuProgramInfo" resultType="egovMap">
+		/* getMenuProgramInfo*/
+		SELECT
+		mp_opt1,
+		mp_opt2
+		FROM
+		t_menu_program
+		WHERE
+		menu_code=#{menuCode}
+		AND prog_idx=#{progIdx}
+	</select>
+
+
+	<delete id="delMenuProgramInfo">
+		/* delMenuProgramInfo*/
+		DELETE FROM
+		t_menu_program
+		WHERE
+		menu_code=#{menuCode}
+		AND prog_idx=#{progIdx}
+	</delete>
+
+
+	<select id="selectMngrMenuAuthRole" parameterType="EgovMap" resultType="String">
+		/* selectMngrMenuAuthRole */
+		SELECT MR_ROLE_IDX
+		FROM T_MANAGER_ROLE
+		WHERE MR_MNG_ID = #{mngId}
+		AND MR_SITE_CODE = #{siteCode}
+		AND DELYN = 'N'
+	</select>
+
+	<select id="getMenuCodeList" resultType="String">
+		/* getMenuCodeList*/
+		SELECT	menu_code
+		FROM	t_menu
+		WHERE	mng_id = #{mngId}
+		<if test="pmenu != null and pmenu != ''">
+			AND menu_sitecode = #{pmenu}
+		</if>
+	</select>
+
+	<select id="getPfullCodeList" resultType="String">
+		/* getPfullCodeList*/
+		SELECT	menu_pfullcode
+		FROM	t_menu
+		WHERE	regmemid = #{mngId}
+		<if test="pmenu != null and pmenu != ''">
+			AND menu_sitecode = #{pmenu}
+		</if>
+	</select>
+
+	<select id="mngrMenuTreeList" resultType="itgMap">
+		/***** mngrMenuTreeList *****/
+		SELECT
+		a.menu_idx idx,
+		a.menu_sitecode siteCode,
+		a.menu_code id,
+		a.menu_name name,
+		a.menu_depth [depth],
+		a.menu_pcode p_id,
+		a.menu_usetype use_type,
+		a.menu_type
+		FROM t_menu a
+		WHERE a.delyn = 'N'
+		AND a.menu_code IN (
+		        SELECT b.MENU_CODE 	FROM T_MENU_AUTH d
+        							LEFT JOIN T_MENU_AUTH_ITEM b ON b.MENU_AUTH_IDX = d.MENU_AUTH_IDX
+        							LEFT JOIN T_MANAGER_MENU_AUTH c ON c.MENU_AUTH_IDX = d.MENU_AUTH_IDX
+        		WHERE d.DELYN = 'N' AND d.MENU_AUTH_SITECODE = #{siteCode} AND c.MNG_ID = #{mngId} AND c.DELYN = 'N'
+     			GROUP BY b.MENU_CODE
+		)
+		ORDER BY a.menu_depth, a.menu_order
+	</select>
+
+	<!-- 메뉴리스트 3.0.7 추가 -->
+	<select id="commTreemenuList" parameterType="itgMap" resultType="itgMap">
+	/***** commTreemenuList *****/
+		select
+			a.menu_code id,
+			a.menu_name name,
+			a.menu_depth [depth],
+			a.menu_pcode p_id,
+			a.menu_usetype use_type
+			/**,
+			a.menu_url,
+			a.menu_type,
+			a.menu_subType,
+			a.menu_pfullname,
+			a.menu_pfullcode**/
+		from t_menu a
+		where a.delyn = 'N'
+		and a.menu_sitecode = #{siteCode}
+		order by a.menu_depth, a.menu_order
+	</select>
+</mapper>

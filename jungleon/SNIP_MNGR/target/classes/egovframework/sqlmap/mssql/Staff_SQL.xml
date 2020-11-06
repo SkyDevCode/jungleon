@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.organization.service.impl.OrganizationMapper">
+
+	<sql id="listWhere">
+		/*listWhere*/
+		<where>
+			t1.delyn = 'N'
+			<if test="schId != null and schId != ''">
+				AND t1.STAFF_NO = #{schId}
+			</if>
+			<if test="schOpt2 != null and schOpt2 != ''">
+				AND t1.STAFF_DEPT = #{schOpt2}
+			</if>
+			<if test="schOpt3 != null and schOpt3 != ''">
+				AND t1.STAFF_POS = #{schOpt3}
+			</if>
+			<if test="schStr != null and schStr != ''">
+			<choose>
+				<when test='schFld == "1"'>
+					AND t1.STAFF_NM LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test='schFld == "2"'>
+					AND t1.TEL_NO LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test='schFld == "3"'>
+					AND t1.STAFF_WORK LIKE '%' + #{schStr} + '%'
+				</when>
+				<otherwise>
+					AND (t1.STAFF_NM LIKE '%' + #{schStr} + '%' OR t1.TEL_NO LIKE '%' + #{schStr} + '%')
+				</otherwise>
+			</choose>
+			</if>
+		</where>
+	</sql>
+
+	<!-- 직원 리스트 조회  -->
+	<select id="mngrGetStaffList" resultType="itgMap" parameterType="defaultVO">
+	/*mngrGetStaffList*/
+	SELECT * FROM (
+		SELECT
+			ceiling(row_number() over (
+		<choose>
+			<when test="ordFld != '' and ordBy != ''">
+				ORDER BY
+				<choose>
+					<when test="ordFld == 'staffDept'"> STAFF_DEPT </when>
+					<when test="ordFld == 'staffPos'"> STAFF_POS </when>
+				</choose>
+				${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+			</when>
+			<otherwise>
+				ORDER BY STAFF_ORD
+			</otherwise>
+		</choose>
+			) / cast(#{recordCountPerPage} as float)) AS page,
+			t1.STAFF_NO,
+			t1.STAFF_NM,
+			t2.c_name STAFF_DEPT,
+			t3.c_name STAFF_POS,
+			t1.TEL_NO,
+			t1.FAX_NO,
+			t1.CELL_NO,
+			t1.STAFF_WORK,
+			t1.STAFF_EMAIL,
+			t1.REG_DT,
+			t1.STAFF_IMG,
+			t1.OLD_FILE,
+			t1.STAFF_HP,
+			t1.STAFF_ORD
+		FROM T_STAFF t1
+		LEFT OUTER JOIN t_code t2
+            ON t1.STAFF_DEPT = t2.c_code
+        LEFT OUTER JOIN t_code t3
+            ON t1.STAFF_POS = t3.c_code
+		<include refid="listWhere" />
+		<if test="schOpt5 != null and schOpt5 != ''">
+				AND t1.STAFF_DEPT = #{schOpt5}
+		</if>
+	) TB
+	<if test='excelDown != "excel"'>
+		<if test="schOpt4 != 'all'">
+	WHERE
+		page = (cast(#{firstIndex} as float) / cast(#{recordCountPerPage} as float)) + 1
+		</if>
+	</if>
+	</select>
+
+	<!-- 직원 리스트 갯수 -->
+	<select id="mngrGetStaffTotCnt" resultType="int" parameterType="defaultVO">
+		/*mngrGetStaffTotCnt */
+		SELECT COUNT(*) FROM T_STAFF t1
+		<include refid="listWhere" />
+	</select>
+
+	<!-- 직원 상세조회 -->
+ 	<select id="mngrGetStaffInfo" resultType="itgMap" parameterType="defaultVO">
+		/*mngrGetEmployeeInfo */
+		SELECT
+		t1.STAFF_NO,
+		t1.STAFF_NM,
+		t1.STAFF_DEPT,
+		t1.STAFF_POS,
+		t1.TEL_NO,
+		t1.FAX_NO,
+        t1.CELL_NO,
+		t1.STAFF_WORK,
+		t1.STAFF_EMAIL,
+		t1.REG_DT,
+		t1.STAFF_IMG,
+		t1.OLD_FILE,
+		t1.STAFF_HP
+		FROM T_STAFF t1
+		<include refid="listWhere" />
+	</select>
+
+	<!-- 직원 정보 등록 -->
+	<insert id="mngrInsertStaffInfoProc" parameterType="itgMap">
+		<selectKey resultType="int" keyProperty="staffOrd" order="BEFORE">
+			SELECT ifsull(MAX(STAFF_ORD), 0) + 1 STAFF_ORD FROM T_STAFF
+		</selectKey>
+		INSERT INTO T_STAFF (
+		STAFF_NM,
+		STAFF_DEPT,
+		STAFF_POS,
+		TEL_NO,
+		FAX_NO,
+        CELL_NO,
+		STAFF_WORK,
+		STAFF_EMAIL,
+		<if test="regDt != null and regDt != ''">
+		REG_DT,
+		</if>
+		STAFF_IMG,
+		OLD_FILE,
+		STAFF_HP,
+		STAFF_ORD,
+		DELYN
+		)VALUES(
+		#{staffNm},
+		#{staffDept},
+		#{staffPos},
+		#{telNo},
+		#{faxNo},
+		#{cellNo},
+		#{staffWork},
+		#{staffEmail},
+		<if test="regDt != null and regDt != ''">
+		#{regDt},
+		</if>
+		#{staffImg},
+		#{oldFile},
+		#{staffHp},
+		#{staffOrd},
+		'N'
+		)
+	</insert>
+
+	<!-- 직원 정보 수정 -->
+	<update id="mngrStaffInfoUpdateProc" parameterType="itgMap">
+		/* mngrStaffInfoUpdateProc */
+		UPDATE T_STAFF
+		<trim prefix="SET" suffixOverrides=",">
+		STAFF_NM =#{staffNm},
+		STAFF_DEPT =#{staffDept},
+		STAFF_POS =#{staffPos},
+		TEL_NO =#{telNo},
+		FAX_NO =#{faxNo},
+		CELL_NO =#{cellNo},
+		STAFF_WORK =#{staffWork},
+		STAFF_EMAIL =#{staffEmail},
+		<if test="regDt != null and regDt != ''">
+		REG_DT =#{regDt},
+		</if>
+		STAFF_IMG =#{staffImg},
+		OLD_FILE =#{oldFile},
+		STAFF_HP =#{staffHp},
+		</trim>
+		where STAFF_NO = #{schId}
+	</update>
+
+	<!-- 직원 정보 순서변경(변경될 데이터) -->
+	<update id="mngrStaffOriOrderChangeProc" parameterType="itgMap">
+		/* mngrStaffOriOrderChangeProc */
+		<selectKey resultType="int" keyProperty="oriSeq" order="BEFORE">
+			<if test='direction == "down"'>
+				select STAFF_NO from T_STAFF where STAFF_ORD = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}+1
+			</if>
+			<if test='direction == "up"'>
+				select STAFF_NO from T_STAFF where STAFF_ORD = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}-1
+			</if>
+		</selectKey>
+		UPDATE T_STAFF
+		<set>
+		STAFF_ORD = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}
+		</set>
+		where STAFF_NO = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(oriSeq)}
+	</update>
+
+	<!-- 직원 정보 순서변경(변경할 데이터) -->
+	<update id="mngrStaffNewOrderChangeProc" parameterType="itgMap">
+		/* mngrStaffNewOrderChangeProc */
+		UPDATE T_STAFF
+		<set>
+			<if test='direction == "down"'>
+			STAFF_ORD = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}+1
+			</if>
+			<if test='direction == "up"'>
+			STAFF_ORD = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}-1
+			</if>
+		</set>
+		where STAFF_NO = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffNo)}
+	</update>
+
+	<!-- 직원 정보  삭제 -->
+	<update id="mngrStaffDelProc" parameterType="itgMap">
+		/* mngrStaffDelProc */
+		UPDATE T_STAFF
+		<set>
+		delyn = 'Y',
+		STAFF_ORD = null
+		</set>
+		where STAFF_NO = #{schId}
+	</update>
+
+	<!-- 직원 정보 삭제시 정렬순서 배정 -->
+	<update id="mngrStaffSortProc" parameterType="itgMap">
+		/* mngrStaffSortProc */
+		<selectKey resultType="int" keyProperty="staffOrd" order="BEFORE">
+			select STAFF_ORD from T_STAFF where STAFF_NO = ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(schId)}
+		</selectKey>
+		UPDATE T_STAFF
+		<set>
+		STAFF_ORD = STAFF_ORD - 1
+		</set>
+		WHERE STAFF_ORD &gt; ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(staffOrd)}
+		and delyn='N'
+	</update>
+</mapper>

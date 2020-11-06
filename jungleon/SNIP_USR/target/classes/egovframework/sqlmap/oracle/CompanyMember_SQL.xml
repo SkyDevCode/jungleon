@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="egovframework.itgcms.mngr.member.service.impl.MngrCompanyMemberMapper">
+
+
+	<sql id="pageBefore">
+		SELECT * FROM
+			(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+			) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+			AND a.delyn = 'N'
+			AND a.type = 'C'
+			<if test="schFldSub != null and schFldSub != ''">
+				AND a.status = #{schFldSub}
+			</if>
+
+			<if test="schStr != null and schStr != ''">
+				<choose>
+					<when test="schFld == '1'.toString()">
+						AND b.com_nm like '%' || #{schStr} || '%'
+					</when>
+					<when test="schFld == '2'.toString()">
+						AND	b.ceo_nm like '%' || #{schStr} || '%'
+					</when>
+					<otherwise>
+						AND	(
+							b.ceo_nm like '%' || #{schStr} || '%'
+							or
+							b.com_nm like '%' || #{schStr} || '%'
+							)
+					</otherwise>
+				</choose>
+			</if>
+
+	</sql>
+
+	<sql id="memberColumns">
+		a.id, a.name, a.nickname, a.pass, a.passdt, a.passtrycnt, a.phone, a.mobile, a.email, a.fax,
+		a.oldpost, a.oldaddr1, a.oldaddr2, a.newpost, a.newaddr1, a.newaddr2,
+		a.birth, a.sex, a.type, a."GROUP", a.code, a.loginip, a.logindt, a.logincountrycd, a.logincountryname,
+		a.loginbrowser, a.loginbrowsericon, a.loginos, a.loginosicon, a.regid, a.regip, CAST(A.REGDT as DATE ) AS REGDT, a.regcountrycd,
+		a.regcountryname, a.regbrowser, a.regbrowsericon, a.regos, a.regosicon, a.updid, a.updip, CAST(A.UPDDT as DATE ) AS UPDDT, a.status,
+		a.delId, a.delIp, CAST(A.DELDT as DATE ) AS DELDT, a.cutoffdt, a.cutoffreason, a.smsyn, a.emailyn, a.infoopenyn, a.regsitecode, a.unionmem, a.etc1, a.position,
+		a.pwd_quest, a.pwd_answer, a.birth_type, a.knowpath, a.ci, a.di, a.concerns,
+		b.busi_reg_no, b.com_nm, b.area_cd, b.com_tp, b.ceo_nm, b.ceo_email, b.office_tel_01, b.office_tel_02, b.office_tel_03,
+		b.fax_no_01, b.fax_no_02, b.fax_no_03, b.zip, b.addr_01, b.addr_02, b.reg_dt, b.main_product,
+		b.mod_dt, b.reg_id, b.mod_id, b.un_cd, b.use_yn, b.h_page, b.est_dt, b.busi_reg_no_real, b.snp, b.jungle_yn
+	</sql>
+
+	<select id="selectCompanyMemberList" resultType="egovMap" parameterType="defaultVO">
+		/* selectCompanyMemberList */
+		<if test="schExcel != 'Y'.toString()">
+			<include refid="pageBefore"/>
+		</if>
+		select
+			<include refid="memberColumns" />
+
+		from
+			t_member a
+			join vnet_v2.company b on a.id = b.id
+			where 1=1
+
+			<include refid="listWhere" />
+
+		ORDER BY a.regdt desc
+
+			<if test="schExcel != 'Y'.toString()">
+				<include refid="pageAfter"/>
+			</if>
+	</select>
+
+	<select id="selectCompanyMemberListTotCnt" resultType="int" parameterType="memberExtVO">
+		/* selectMemberListTotCnt */
+		select
+			count(*) as cnt
+		from
+			t_member a
+			join vnet_v2.company b on a.id = b.id
+			where 1=1
+			<include refid="listWhere" />
+	</select>
+
+</mapper>

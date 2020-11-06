@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title></title>
+		
+		<!-- TouchEn nxKey (키보드 보안) js 파일 로드 -->
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/TouchEnNx.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/json2.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/TouchEnNx_exproto.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/TouchEnNx_install.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/TouchEnNx_daemon.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/nxKey/js/nxkey_config.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/nxKey/js/TouchEnNxKey_Interface.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/nxKey/js/TouchEnNxKey.js'></script>
+		<script type='text/javascript' charset='utf-8' src='../../raonnx/cmn/TouchEnNx_loader.js'></script>
+		<script>
+			TouchEnNxConfig.installPage.tos = TouchEnNxConfig.installPage.nxkey;
+		</script>
+		
+	</head>
+	<body>
+		<!-- input 태그에 id 값 정의해야 입력 필드에 키보드 보안 적용됨 -->
+		pwd : <input type="password" id="pwd" name="pwd" /><br/>
+	</body>
+</html>

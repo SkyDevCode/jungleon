@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.comember.service.impl.ComemberMapper">
+
+	<sql id="pageBefore">
+		SELECT * FROM
+		(SELECT RN.*, ROWNUM AS RNUM, COUNT(*) OVER() AS TOTCNT FROM(
+	</sql>
+	<sql id="pageAfter">
+		) RN
+		) WHERE RNUM &gt; #{firstIndex} AND RNUM &lt;= #{lastIndex}
+	</sql>
+
+	<sql id="listWhere">
+		/*listWhere*/
+		<where>
+			t1.delyn = 'N'
+			<if test="schId != null and schId != ''">
+				AND t1.comem_idx = #{schId}
+			</if>
+			<if test="schUseYn != null and schUseYn != ''">
+				AND t1.useyn = #{schUseYn}
+			</if>
+			<if test="schMemid != null and schMemid != ''">
+				AND t1.regmemid = #{schMemid}
+			</if>
+			<if test="schOpt1 != null and schOpt1 != ''">
+				<choose>
+					<when test='schOpt1 == "ComnoChkAjax"'>
+						AND t1.comem_comno = #{schOpt2}
+					</when>
+					<when test='schOpt1 == "ConameChkAjax"'>
+						AND t1.comem_name = #{schOpt2}
+					</when>
+				</choose>
+			</if>
+			<if test="schStr != null and schStr != ''">
+				<choose>
+					<when test='schFld == "1"'>
+						AND t1.comem_name LIKE '%' || #{schStr} || '%'
+					</when>
+					<when test='schFld == "2"'>
+						AND t1.comem_ceonm LIKE '%' || #{schStr} || '%'
+					</when>
+					<when test='schFld == "3"'>
+						AND (t1.comem_name LIKE '%' || #{schStr} || '%' OR t1.comem_ceonm LIKE '%' || #{schStr} || '%') AND t1.comem_status = 'com_status_1'
+					</when>
+					<otherwise>
+						AND (t1.comem_name LIKE '%' || #{schStr} || '%' OR t1.comem_ceonm LIKE '%' || #{schStr} || '%')
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+
+	<insert id="mngrInsertComemberProc" parameterType="itgMap">
+		<selectKey resultType="int" keyProperty="comemIdx" order="BEFORE">
+			SELECT T_COMEMBER_SEQ.nextval FROM DUAL
+		</selectKey>
+		/*mngrInsertComemberProc*/
+		INSERT INTO t_comember (
+		comem_idx,
+		comem_id,
+		comem_comno,
+		comem_name,
+		comem_ceonm,
+		comem_code_type,
+		comem_code_cate,
+		comem_empl,
+		comem_post,
+		comem_addr1,
+		comem_addr2,
+		comem_chrge_name,
+		comem_chrge_grp,
+		comem_chrge_pos,
+		comem_chrge_post,
+		comem_chrge_addr1,
+		comem_chrge_addr2,
+		comem_chrge_cell,
+		comem_chrge_tel,
+		comem_chrge_mail,
+		comem_chrge_tname,
+		comem_chrge_tmail,
+		comem_status,
+		etc1,
+		etc2,
+		regmemid
+		)VALUES(
+		#{comemIdx},
+		#{comemId},
+		#{comemComno},
+		#{comemName},
+		#{comemCeonm},
+		#{comemCodeType},
+		#{comemCodeCate},
+		#{comemEmpl},
+		#{comemPost},
+		#{comemAddr1},
+		#{comemAddr2},
+		#{comemChrgeName},
+		#{comemChrgeGrp},
+		#{comemChrgePos},
+		#{comemChrgePost},
+		#{comemChrgeAddr1},
+		#{comemChrgeAddr2},
+		#{comemChrgeCell},
+		#{comemChrgeTel},
+		#{comemChrgeMail},
+		#{comemChrgeTname},
+		#{comemChrgeTmail},
+		'com_status_0',
+		#{etc1},
+		#{etc2},
+		#{logMemid}
+		)
+	</insert>
+
+	<update id="mngrUpdateComemberProc" parameterType="itgMap">
+		/*mngrUpdateComemberProc*/
+		UPDATE t_comember
+		<set>
+			<if test="comemId != null"> comem_id =#{comemId},</if>
+			<if test="comemComno != null"> comem_comno =#{comemComno},</if>
+			<if test="comemName != null"> comem_name =#{comemName},</if>
+			<if test="comemCeonm != null"> comem_ceonm =#{comemCeonm},</if>
+			<if test="comemCodeType != null"> comem_code_type =#{comemCodeType},</if>
+			<if test="comemCodeCate != null"> comem_code_cate =#{comemCodeCate},</if>
+			<if test="comemEmpl != null"> comem_empl =#{comemEmpl},</if>
+			<if test="comemPost != null"> comem_post =#{comemPost},</if>
+			<if test="comemAddr1 != null"> comem_addr1 =#{comemAddr1},</if>
+			<if test="comemAddr2 != null"> comem_addr2 =#{comemAddr2},</if>
+			<if test="comemChrgeName != null"> comem_chrge_name =#{comemChrgeName},</if>
+			<if test="comemChrgeGrp != null"> comem_chrge_grp =#{comemChrgeGrp},</if>
+			<if test="comemChrgePos != null"> comem_chrge_pos =#{comemChrgePos},</if>
+			<if test="comemChrgePost != null"> comem_chrge_post =#{comemChrgePost},</if>
+			<if test="comemChrgeAddr1 != null"> comem_chrge_addr1 =#{comemChrgeAddr1},</if>
+			<if test="comemChrgeAddr2 != null"> comem_chrge_addr2 =#{comemChrgeAddr2},</if>
+			<if test="comemChrgeCell != null"> comem_chrge_cell =#{comemChrgeCell},</if>
+			<if test="comemChrgeTel != null"> comem_chrge_tel =#{comemChrgeTel},</if>
+			<if test="comemChrgeMail != null"> comem_chrge_mail =#{comemChrgeMail},</if>
+			<if test="comemChrgeTname != null"> comem_chrge_tname =#{comemChrgeTname},</if>
+			<if test="comemChrgeTmail != null"> comem_chrge_tmail =#{comemChrgeTmail},</if>
+			<if test="comemStatus != null"> comem_status =#{comemStatus},</if>
+			<if test="etc1 != null"> etc1 =#{etc1},</if>
+			<if test="etc2 != null"> etc2 =#{etc2},</if>
+			updmemid = #{logMemid}
+		</set>
+		WHERE comem_idx = #{schId}
+	</update>
+
+	<select id="mngrGetComemberList" resultType="itgMap" parameterType="defaultVO">
+		/*mngrGetComemberList */
+		<if test='excelDown != "excel"'>
+			<include refid="pageBefore" />
+		</if>
+		SELECT
+		t1.comem_idx,
+		t1.comem_id,
+		t1.comem_comno,
+		t1.comem_name,
+		t1.comem_ceonm,
+		t1.comem_code_type,
+		t1.comem_code_cate,
+		t1.comem_empl,
+		t1.comem_post,
+		(t1.comem_addr1||', '||t1.comem_addr2) comem_addr,
+		t1.comem_addr1,
+		t1.comem_addr2,
+		t1.comem_chrge_name,
+		t1.comem_chrge_grp,
+		t1.comem_chrge_pos,
+		t1.comem_chrge_post,
+		t1.comem_chrge_addr1,
+		t1.comem_chrge_addr2,
+		t1.comem_chrge_cell,
+		t1.comem_chrge_tel,
+		t1.comem_chrge_mail,
+		t1.comem_chrge_tname,
+		t1.comem_chrge_tmail,
+		t1.comem_status,
+		t2.c_name comem_status_nm,
+		t1.etc1,
+		t1.etc2,
+		t1.useyn
+		FROM t_comember t1
+		LEFT OUTER JOIN t_code t2 ON t1.comem_status = t2.c_code
+		<include refid="listWhere" />
+		<choose>
+			<when test="ordFld != '' and ordBy != ''">
+				ORDER BY
+				<choose>
+					<when test="ordFld == 'comemName'"> t1.comem_name </when>
+					<when test="ordFld == 'comemCeonm'"> t1.comem_ceonm </when>
+					<when test="ordFld == 'comemAddr'"> comem_addr </when>
+					<when test="ordFld == 'comemChrgeName'"> t1.comem_chrge_name </when>
+					<when test="ordFld == 'comemChrgeTel'"> t1.comem_chrge_tel </when>
+					<when test="ordFld == 'comemStatus'"> t1.comem_status </when>
+				</choose>
+				${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+			</when>
+			<otherwise>
+				ORDER BY t1.comem_idx DESC
+			</otherwise>
+		</choose>
+		<if test='excelDown != "excel"'>
+			<include refid="pageAfter" />
+		</if>
+	</select>
+
+	<select id="mngrGetComemberListTotCnt" resultType="int" parameterType="defaultVO">
+		/*mngrGetComemberList */
+		SELECT COUNT(*) FROM t_comember t1
+		<include refid="listWhere" />
+	</select>
+
+	<select id="mngrComemberComnoChkAjax" resultType="int" parameterType="defaultVO">
+		/*mngrComemberComnoChkAjax */
+		SELECT COUNT(*) FROM t_comember t1
+		<include refid="listWhere" />
+	</select>
+
+	<select id="mngrComemberConameChkAjax" resultType="int" parameterType="defaultVO">
+		/*mngrComemberConameChkAjax */
+		SELECT COUNT(*) FROM t_comember t1
+		<include refid="listWhere" />
+	</select>
+
+	<select id="mngrGetComemberInfo" resultType="itgMap" parameterType="defaultVO">
+		/*mngrGetComemberInfo */
+		SELECT
+		t1.comem_idx,
+		t1.comem_id,
+		t1.comem_comno,
+		t1.comem_name,
+		t1.comem_ceonm,
+		t1.comem_code_type,
+		t1.comem_code_cate,
+		t1.comem_empl,
+		t1.comem_post,
+		(t1.comem_addr1||', '||t1.comem_addr2) comem_addr,
+		t1.comem_addr1,
+		t1.comem_addr2,
+		t1.comem_chrge_name,
+		t1.comem_chrge_grp,
+		t1.comem_chrge_pos,
+		t1.comem_chrge_post,
+		t1.comem_chrge_addr1,
+		t1.comem_chrge_addr2,
+		t1.comem_chrge_cell,
+		t1.comem_chrge_tel,
+		t1.comem_chrge_mail,
+		t1.comem_chrge_tname,
+		t1.comem_chrge_tmail,
+		t1.comem_status,
+		t2.c_name comem_status_nm,
+		t1.etc1,
+		t1.etc2,
+		t1.useyn
+		FROM t_comember t1
+		LEFT OUTER JOIN t_code t2 ON t1.comem_status = t2.c_code
+		<include refid="listWhere" />
+	</select>
+
+	<update id="mngrChkDelComemberProc" parameterType="DefaultVO">
+		/*mngrChkDelComemberProc*/
+		UPDATE t_comember SET
+		delyn = 'Y',
+		deldt = SYSDATE,
+		updmemid = #{logMemid},
+		delmemid = #{logMemid}
+		WHERE comem_idx IN
+		<foreach collection="chkId" item="list" index="i" open="(" close=")" separator=",">
+			#{list}
+		</foreach>
+	</update>
+
+	<update id="mngrChkConfirmComemberProc" parameterType="DefaultVO">
+		/*mngrChkConfirmComemberProc*/
+		UPDATE t_comember SET
+		comem_status = 'com_status_1',
+		updmemid = #{logMemid}
+		WHERE comem_idx IN
+		<foreach collection="chkId" item="list" index="i" open="(" close=")" separator=",">
+			#{list}
+		</foreach>
+	</update>
+
+</mapper>
