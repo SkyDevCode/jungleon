@@ -1,0 +1,1198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.board.service.impl.BoardMapper">
+
+	<resultMap id="board" type="itgMap">
+		<result property="bdContent" column="bd_content" jdbcType="CLOB" javaType="java.lang.String"/>
+		<result property="bdContentText" column="bd_content_text" jdbcType="CLOB" javaType="java.lang.String"/>
+		<result property="bdAnswer" column="bd_answer" jdbcType="CLOB" javaType="java.lang.String"/>
+		<result property="bdAnswerwriter" column="bd_answer_writer" />
+		<result property="howUpload" column="bd_how_movie" /> <!-- 동영상 업로드 방식 -->
+		<result property="noticeOrder" column="noticeOrder" />
+		<result property="bdCodeName" column="bdCodeName" />	<!-- 카테고리 한글명 -->
+	</resultMap>
+	<resultMap id="boardLob" type="itgMap">
+		<result property="blContents" column="bl_contents" jdbcType="CLOB" javaType="java.lang.String"/>
+	</resultMap>
+
+	<sql id="boardColums">
+		a.bd_idx,
+		a.bc_id,
+		a.bd_code,
+		a.bd_writer,
+		a.bd_title,
+		a.bd_content,
+		a.bd_content_text,
+		a.bd_readnum,
+		a.bd_passwd,
+		a.bd_secret,
+		a.bd_htmlyn,
+		a.bd_notice,
+		a.bd_useyn,
+		a.bd_ip,
+		a.bd_phone,
+		a.bd_mobile,
+		a.bd_email,
+		a.bd_addr1,
+		a.bd_addr2,
+		a.bd_reidx,
+		a.bd_relevel,
+		a.bd_reorder,
+		a.regdt,
+		a.upddt,
+		a.deldt,
+		a.regmemid,
+		a.updmemid,
+		a.delmemid,
+		a.delyn,
+		a.bd_kogluseyn,
+		a.bd_kogltype1,
+		a.bd_kogltype2,
+		a.bd_notice_termyn,
+		a.bd_notice_sdt,
+		a.bd_notice_edt,
+		a.bd_use_termyn,
+		a.bd_use_sdt,
+		a.bd_use_edt,
+		a.bd_sch_sdt,
+		a.bd_sch_edt,
+		a.bd_thumb1,
+		a.bd_thumb2,
+		a.bd_thumb3,
+		a.bd_thumb1_alt,
+		a.bd_thumb2_alt,
+		a.bd_thumb3_alt,
+		a.bd_answer,
+		a.bd_answer_writer,
+		a.group_code,
+		a.file_id,
+		(SELECT count(*) FROM j_attachfile WHERE file_id = a.file_id and delete_yn='N') file_cnt,
+			(select c_name from t_code where a.bd_code = c_code) bdCodeName,
+			case when a.bd_relevel = '0'then a.regmemid else (select regmemid from t_board where bd_idx = a.bd_reidx) end ownId
+	</sql>
+
+	<sql id="listWhere">
+		AND a.bc_id = #{schBcid}
+		AND a.delyn = 'N'
+		<if test="schBdcode != null and schBdcode != ''">
+			AND b.c_code = #{schBdcode}
+		</if>
+		<if test="schStr != null and schStr != ''">
+			<choose>
+		            	<when test="schFld == '1'.toString()">
+			    		AND	a.bd_title LIKE '%' + #{schStr} + '%'
+				</when>
+		            	<when test="schFld == '2'.toString()">
+					AND	a.bd_writer LIKE '%' + #{schStr} + '%'
+				</when>
+		            	<when test="schFld == '3'.toString()">
+					AND	a.bd_content_text LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test="schFld == '4'.toString()">
+					AND a.bd_reidx =#{schStr}
+				</when>
+				<otherwise>
+					AND (
+						a.bd_title LIKE '%' + #{schStr} + '%'
+						or
+						a.bd_writer LIKE '%' + #{schStr} + '%'
+						or
+						a.bd_content_text LIKE '%' + #{schStr} + '%'
+					)
+				</otherwise>
+			</choose>
+		</if>
+		<!-- 게시판 권한별 -->
+		<if test="not schMngAuth.startsWith('9')">
+			<choose>
+				<when test="root == '_mngr_'">
+					<if test="mngrBoardconfigVO.bcMngrList == '300'"><!-- 관리자 부서만 보는 권한 -->
+						AND (
+						a.group_code = #{schGroupCode}
+						OR
+						a.own_id = #{schRegmemid}
+						)
+					</if>
+					<if test="mngrBoardconfigVO.bcMngrList == '310'"><!-- 관리자 작성자만 보는 권한 -->
+						AND a.own_id = #{schRegmemid}
+					</if>
+				</when>
+				<when test="root == 'user'">
+					<if test="mngrBoardconfigVO.bcList == '210'"><!-- 사용자 작성자만 보는 권한 -->
+						AND a.own_id = #{schRegmemid}
+					</if>
+				</when>
+			</choose>
+		</if>
+		<if test="root == 'user'"><!-- 사용자인경우 사용여부 체크에 따라 표출 설정 -->
+			AND a.bd_useyn = 'Y'
+			AND(
+            ( a.bd_use_termyn = 'Y' and a.bd_use_sdt &lt; getdate() and a.bd_use_edt &gt; getdate()) or (ISNULL(a.bd_use_termyn, 'N') = 'N')
+			)
+		</if>
+	</sql>
+
+	<sql id="listWhere2">
+		AND a.delyn = 'N'
+		<if test="schStr != null and schStr != ''">
+			<choose>
+				<when test="schFld == '1'.toString()">
+					AND	a.bd_title LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test="schFld == '2'.toString()">
+					AND	a.bd_writer LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test="schFld == '3'.toString()">
+					AND	a.bd_content_text LIKE '%' + #{schStr} + '%'
+				</when>
+				<when test="schFld == '4'.toString()">
+					AND a.bd_reidx = #{schStr}
+				</when>
+				<otherwise>
+					AND (
+						a.bd_title LIKE '%' + #{schStr} + '%'
+						OR
+						a.bd_writer LIKE '%' + #{schStr} + '%'
+						OR
+						a.bd_content_text LIKE '%' + #{schStr} + '%'
+					)
+				</otherwise>
+			</choose>
+		</if>
+		<!-- 게시판 권한별 -->
+		<if test="not schMngAuth.startsWith('9')">
+			<choose>
+				<when test="root == '_mngr_'">
+					<if test="mngrBoardconfigVO.bcMngrList == '300'"><!-- 관리자 부서만 보는 권한 -->
+						AND (
+						a.group_code = #{schGroupCode}
+						OR
+						a.own_id = #{schRegmemid}
+						)
+					</if>
+					<if test="mngrBoardconfigVO.bcMngrList == '310'"><!-- 관리자 작성자만 보는 권한 -->
+						AND a.own_id = #{schRegmemid}
+					</if>
+				</when>
+				<when test="root == 'user'">
+					<if test="mngrBoardconfigVO.bcList == '210'"><!-- 사용자 작성자만 보는 권한 -->
+						AND a.own_id = #{schRegmemid}
+					</if>
+				</when>
+			</choose>
+		</if>
+		<if test="root == 'user'"><!-- 사용자인경우 사용여부 체크에 따라 표출 설정 -->
+			AND a.bd_useyn = 'Y'
+			<![CDATA[
+            		AND (( a.bd_use_termyn = 'Y' AND (a.bd_use_sdt < getdate() AND a.bd_use_edt > getdate())) OR (ISNULL(a.bd_use_termyn, 'N') = 'N'))
+			]]>
+		</if>
+	</sql>
+
+	<select id="noticeList" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="board">
+		/* noticeList >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		(select
+				<include refid="boardColums" />
+		 from t_board a
+	     where
+	     		a.bd_notice = '1'
+	        	and ((bd_notice_termyn = 'Y' and (bd_notice_sdt &lt; getdate() and bd_notice_edt &gt; getdate())) or (bd_notice = '1' and ISNULL(bd_notice_termyn, 'N') = 'N'))
+		) UNION
+
+		(select
+				<include refid="boardColums" />
+          from t_board a
+          where
+          		a.bd_notice = '2'
+		    	and ((bd_notice_termyn = 'Y' and (bd_notice_sdt &lt;  getdate() and bd_notice_edt &gt; getdate())) or (bd_notice = '2' and ISNULL(bd_notice_termyn, 'N') = 'N'))
+		    	and a.bc_id in(select m.menu_subtype from t_menu as m where m.menu_sitecode=#{siteCode})
+		) UNION
+
+		(select
+				<include refid="boardColums" />
+	        from
+	        	t_board a
+	        where
+	        	a.bd_notice = '3'
+	        	and ((bd_notice_termyn = 'Y' and (bd_notice_sdt &lt;  getdate() and bd_notice_edt &gt; getdate())) or (bd_notice = '3' and ISNULL(bd_notice_termyn, 'N') = 'N'))
+	        	and a.bc_id=#{schBcid}
+		)
+	     order by
+	     		bd_idx desc
+	</select>
+
+	<select id="boardList" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="board">
+	/* boardList >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+	select * from (
+		select
+			ceiling(row_number() over (
+			<choose>
+				<when test="ordFld != '' and ordBy != ''">
+					order by
+						noticeOrder desc
+						<choose>
+							<when test="ordFld == 'title'"> , a.bd_title </when>
+							<when test="ordFld == 'writer'"> , a.bd_writer </when>
+							<when test="ordFld == 'regdt'"> , a.regdt </when>
+							<when test="ordFld == 'readnum'"> , a.bd_readnum </when>
+							<otherwise>
+								, a.bd_reidx desc , a.bd_reorder asc
+							</otherwise>
+						</choose>
+					${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(ordBy)}
+				</when>
+				<otherwise>
+					order by a.bd_reidx desc , a.bd_reorder asc
+				</otherwise>
+			</choose>
+			) / cast(#{recordCountPerPage} as float)) AS page,
+			<include refid="boardColums" />
+			, 0 as noticeOrder
+		from t_board a
+			where 1=1
+			<include refid="listWhere" />
+	) tb
+	where
+		page = (cast(#{firstIndex} as float) / cast(#{recordCountPerPage} as float)) + 1
+	</select>
+
+	<select id="boardListTotCnt" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="int">
+			select count(*) totcnt
+			from t_board a
+			where 1=1
+			<include refid="listWhere" />
+	</select>
+
+	<select id="boardCheckId" resultType="int">
+	/** boardCheckId **/
+		SELECT COUNT(*) cnt FROM t_board WHERE bc_id = #{id}
+	</select>
+
+	<insert id="boardRegistProc" parameterType="itgMap">
+	/** boardRegistProc **/
+		<selectKey resultType="String" keyProperty="bdIdx" order="BEFORE">
+			select isnull(max(bd_idx), 0) + 1 from t_board
+		</selectKey>
+		INSERT INTO t_board(
+			bd_idx,
+			bc_id,
+			bd_code,
+			bd_writer,
+			bd_title,
+			bd_content,
+			bd_content_text,
+			bd_readnum,
+			bd_passwd,
+			bd_htmlyn,
+			<if test="bdSecret != null">bd_secret,</if>
+			<if test="bdNotice != null">bd_notice,</if>
+			<if test="bdUseyn != null">bd_useyn,</if>
+			bd_ip,
+			bd_phone,
+			bd_mobile,
+			bd_email,
+			bd_addr1,
+			bd_addr2,
+			bd_reidx,
+			bd_relevel,
+			bd_reorder,
+			regdt,
+			regmemid,
+			delyn,
+			<if test="bdKogluseyn != null">bd_kogluseyn,</if>
+			bd_kogltype1,
+			bd_kogltype2,
+			<if test="bdNoticeTermyn != null">bd_notice_termyn,</if>
+			bd_notice_sdt,
+			bd_notice_edt,
+			<if test="bdUseTermyn != null">bd_use_termyn,</if>
+			bd_use_sdt,
+			bd_use_edt,
+			bd_thumb1,
+			bd_thumb2,
+			bd_thumb3,
+			bd_thumb1_alt,
+			bd_thumb2_alt,
+			bd_thumb3_alt,
+			bd_answer,
+			bd_answer_writer,
+			group_code,
+			file_id,
+			bd_movie,
+			<if test="howUpload != null">bd_how_movie,</if>
+			bd_sch_sdt,
+			bd_sch_edt,
+			bd_ext1,
+			bd_ext2,
+			bd_ext3,
+			bd_ext4,
+			bd_ext5,
+			bd_ext6,
+			bd_ext7,
+			bd_ext8,
+			bd_ext9,
+			bd_ext10,
+			bd_ext11,
+			bd_ext12
+		)VALUES(
+			#{bdIdx},
+			#{schBcid},
+			#{bdCode},
+			#{bdWriter},
+			#{bdTitle},
+			#{bdContent},
+			#{bdContentText},
+			0,
+			#{bdPasswd},
+			#{bdHtmlyn},
+			<if test="bdSecret != null">#{bdSecret},</if>
+			<if test="bdNotice != null">#{bdNotice},</if>
+			<if test="bdUseyn != null">#{bdUseyn},</if>
+			#{bdIp},
+			#{bdPhone},
+			#{bdMobile},
+			#{bdEmail},
+			#{bdAddr1},
+			#{bdAddr2},
+			#{bdIdx},
+			0,
+			0,
+			getdate(),
+			#{regmemid},
+			'N',
+			<if test="bdKogluseyn != null">#{bdKogluseyn},</if>
+			#{bdKogltype1},
+			#{bdKogltype2},
+			<if test="bdNoticeTermyn != null">#{bdNoticeTermyn},</if>
+			#{bdNoticeSdt},
+			#{bdNoticeEdt},
+			<if test="bdUseTermyn != null">#{bdUseTermyn},</if>
+			#{bdUseSdt},
+			#{bdUseEdt},
+			#{bdThumb1},
+			#{bdThumb2},
+			#{bdThumb3},
+			#{bdThumb1Alt},
+			#{bdThumb2Alt},
+			#{bdThumb3Alt},
+			#{bdAnswer},
+			#{bdAnswerwriter},
+			#{groupCode},
+			#{fileId},
+			#{bdMovie},
+			<if test="howUpload != null">#{howUpload},</if>
+			#{bdSchSdt},
+			#{bdSchEdt},
+			#{bdExt1},
+			#{bdExt2},
+			#{bdExt3},
+			#{bdExt4},
+			#{bdExt5},
+			#{bdExt6},
+			#{bdExt7},
+			#{bdExt8},
+			#{bdExt9},
+			#{bdExt10},
+			#{bdExt11},
+			#{bdExt12}
+		)
+	</insert>
+
+	<insert id="boardReplyProc" parameterType="itgMap">
+	/**boardReplyProc**/
+		<selectKey resultType="String" keyProperty="bdIdx" order="BEFORE">
+      			select isnull(max(bd_idx), 0) + 1 from t_board
+		</selectKey>
+		INSERT INTO t_board(
+			bd_idx,
+			bc_id,
+			bd_code,
+			bd_writer,
+			bd_title,
+			bd_content,
+			bd_content_text,
+			bd_readnum,
+			bd_passwd,
+			bd_htmlyn,
+			<if test="bdSecret != null">bd_secret,</if>
+			<if test="bdNotice != null">bd_notice,</if>
+			<if test="bdUseyn != null">bd_useyn,</if>
+			bd_ip,
+			bd_phone,
+			bd_mobile,
+			bd_email,
+			bd_addr1,
+			bd_addr2,
+			bd_reidx,
+			bd_relevel,
+			bd_reorder,
+			regdt,
+			regmemid,
+			delyn,
+			<if test="bdKogluseyn != null">bd_kogluseyn,</if>
+			bd_kogltype1,
+			bd_kogltype2,
+			<if test="bdNoticeTermyn != null">bd_notice_termyn,</if>
+			bd_notice_sdt,
+			bd_notice_edt,
+			<if test="bdUseTermyn != null">bd_use_termyn,</if>
+			bd_use_sdt,
+			bd_use_edt,
+			bd_thumb1,
+			bd_thumb2,
+			bd_thumb3,
+			bd_thumb1_alt,
+			bd_thumb2_alt,
+			bd_thumb3_alt,
+			bd_answer,
+			bd_answer_writer,
+			group_code,
+			file_id
+		)VALUES(
+			#{bdIdx},
+			#{schBcid},
+			#{bdCode},
+			#{bdWriter},
+			#{bdTitle},
+			#{bdContent},
+			#{bdContentText},
+			0,
+			#{bdPasswd},
+			#{bdHtmlyn},
+			<if test="bdSecret != null">#{bdSecret},</if>
+			<if test="bdNotice != null">#{bdNotice},</if>
+			<if test="bdUseyn != null">#{bdUseyn},</if>
+			#{bdIp},
+			#{bdPhone},
+			#{bdMobile},
+			#{bdEmail},
+			#{bdAddr1},
+			#{bdAddr2},
+			#{bdReidx},
+			#{bdRelevel},
+			#{bdReorder},
+			getdate(),
+			#{regmemid},
+			'N',
+			<if test="bdKogluseyn != null">#{bdKogluseyn},</if>
+			#{bdKogltype1},
+			#{bdKogltype2},
+			<if test="bdNoticeTermyn != null">#{bdNoticeTermyn},</if>
+			#{bdNoticeSdt},
+			#{bdNoticeEdt},
+			<if test="bdUseTermyn != null">#{bdUseTermyn},</if>
+			#{bdUseSdt},
+			#{bdUseEdt},
+			#{bdThumb1},
+			#{bdThumb2},
+			#{bdThumb3},
+			#{bdThumb1Alt},
+			#{bdThumb2Alt},
+			#{bdThumb3Alt},
+			#{bdAnswer},
+			#{bdAnswerwriter},
+			#{groupCode},
+			#{fileId}
+		)
+	</insert>
+
+	<update id="boardReplyUpdateReorder" parameterType="itgMap">
+	/** boardReplyUpdatereorder **/
+		UPDATE t_board SET
+			bd_reorder = bd_reorder + 1
+		WHERE delyn = 'N'
+		AND bd_reidx = #{bdReidx}
+		AND bc_id = #{schBcid}
+		AND bd_reorder &gt;= #{bdReorder}
+	</update>
+
+	<select id="boardView" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="board">
+	/* SELECT boardView */
+		SELECT
+			a.bd_idx,
+			a.bc_id,
+			a.bd_code,
+			a.bd_writer,
+			a.bd_title,
+			a.bd_content,
+			a.bd_content_text,
+			a.bd_readnum,
+			a.bd_passwd,
+			a.bd_secret,
+			a.bd_htmlyn,
+			a.bd_notice,
+			a.bd_useyn,
+			a.bd_ip,
+			a.bd_phone,
+			a.bd_mobile,
+			a.bd_email,
+			a.bd_addr1,
+			a.bd_addr2,
+			a.bd_reidx,
+			a.bd_relevel,
+			a.bd_reorder,
+			CAST(A.REGDT as DATE ) AS REGDT,
+			CAST(A.UPDDT as DATE ) AS UPDDT,
+			CAST(A.DELDT as DATE ) AS DELDT,
+			a.regmemid,
+			a.updmemid,
+			a.delmemid,
+			a.delyn,
+			a.bd_kogluseyn,
+			a.bd_kogltype1,
+			a.bd_kogltype2,
+			a.bd_notice_termyn,
+			a.bd_notice_sdt,
+			a.bd_notice_edt,
+			a.bd_use_termyn,
+			a.bd_use_sdt,
+			a.bd_use_edt,
+			a.bd_sch_sdt,
+			a.bd_sch_edt,
+			a.bd_thumb1,
+			a.bd_thumb2,
+			a.bd_thumb3,
+			a.bd_thumb1_alt,
+			a.bd_thumb2_alt,
+			a.bd_thumb3_alt,
+			a.bd_answer,
+			a.bd_answer_writer,
+			a.group_code,
+			a.file_id,
+			a.bd_movie,
+			a.bd_how_movie,
+			a.bd_ext1,
+			a.bd_ext2,
+			a.bd_ext3,
+			a.bd_ext4,
+			a.bd_ext5,
+			a.bd_ext6,
+			a.bd_ext7,
+			a.bd_ext8,
+			a.bd_ext9,
+			a.bd_ext10,
+			a.bd_ext11,
+			a.bd_ext12,
+			b.c_name bdCodeName 
+		FROM t_board a
+		LEFT JOIN t_code B ON a.bd_code = b.c_code
+		WHERE a.delyn = 'N'
+		AND a.bd_idx = #{id}
+		AND a.bc_id = #{schBcid}
+	</select>
+
+	<select id="getPrevBoardVO" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="itgMap">
+		/* getPrevBoardVO */
+		SELECT 	top 1
+			a.bd_idx,
+			a.bc_id,
+			a.bd_writer,
+			a.bd_title,
+			a.bd_reidx,
+			a.bd_thumb1,
+			a.bd_thumb2,
+			a.bd_thumb3,
+			a.bd_thumb1_alt,
+			a.bd_thumb2_alt,
+			a.bd_thumb3_alt,
+			a.REGDT,
+			a.group_code,
+			a.file_id,
+			b.c_name bd_code_name,
+			CASE
+      				when (bd_notice = 'Y' and bd_notice_termyn = 'Y' and bd_notice_sdt &lt; getdate() and bd_notice_edt &gt; getdate() ) OR
+				(bd_notice = 'Y' AND bd_notice_termyn = 'N') THEN 1
+			ELSE 0 END notice_order
+    from ( select *, case when d.bd_relevel = '0' then d.regmemid else (select c.regmemid from t_board c where c.bd_idx = d.bd_reidx) end ownId from t_board d) a
+    LEFT JOIN t_code B ON a.bd_code = b.c_code
+    where 1=1
+    <include refid="listWhere" />
+      and a.bd_reidx &gt;(select bd_reidx from t_board where bc_id=#{schBcid} and bd_idx = #{id})
+      order by a.bd_reidx asc, a.bd_reorder desc
+	</select>
+
+	<select id="getNextBoardVO" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="itgMap">
+		/* getNextBoardVO */
+		SELECT top 1
+			a.bd_idx,
+			a.bc_id,
+			a.bd_writer,
+			a.bd_title,
+			a.bd_htmlyn,
+			a.bd_reidx,
+			a.bd_thumb1,
+			a.bd_thumb2,
+			a.bd_thumb3,
+			a.bd_thumb1_alt,
+			a.bd_thumb2_alt,
+			a.bd_thumb3_alt,
+			a.REGDT,
+			a.group_code,
+			a.file_id,
+			b.c_name bd_code_name,
+			CASE WHEN (bd_notice = 'Y' AND bd_notice_termyn = 'Y' AND bd_notice_sdt &lt; getdate() AND bd_notice_edt &gt; getdate() )
+			       OR ( bd_notice = 'Y' AND bd_notice_termyn = 'N') THEN 1
+			ELSE 0 END notice_order
+		FROM ( SELECT
+				*,case when d.bd_relevel = '0' then d.regmemid else (select c.regmemid from t_board c where c.bd_idx = d.bd_reidx) end ownId from t_board d) a
+    		LEFT JOIN t_code B ON a.bd_code = b.c_code
+		WHERE 1=1
+		<include refid="listWhere" />
+		AND a.bd_reidx &lt;(SELECT bd_reidx FROM t_board WHERE bc_id=#{schBcid} AND bd_idx = #{id})
+		ORDER BY a.bd_reidx DESC, a.bd_reorder ASC
+	</select>
+
+	<update id="increaseReadnum">
+	/** increaseReadnum **/
+		UPDATE t_board 
+		SET bd_readnum = bd_readnum + 1 
+		WHERE delyn = 'N' 
+		AND bd_idx = #{id} 
+		AND bc_id = #{schBcid}
+	</update>
+
+	<update id="boardUpdateProc" parameterType="itgMap">
+	/** boardUpdateProc **/
+		UPDATE t_board SET
+			bd_code = #{bdCode},
+			bd_title = #{bdTitle},
+			bd_content = #{bdContent},
+			bd_content_text = #{bdContentText},
+			bd_secret = #{bdSecret},
+			bd_htmlyn = #{bdHtmlyn},
+			bd_notice = #{bdNotice},
+			bd_useyn = #{bdUseyn},
+			bd_phone = #{bdPhone},
+			bd_mobile = #{bdMobile},
+			bd_email = #{bdEmail},
+			bd_addr1 = #{bdAddr1},
+			bd_addr2 = #{bdAddr2},
+			<!-- bd_reidx = #{bdReidx}, 
+			bd_relevel = #{bdRelevel}, 
+			bd_reorder = #{bdreorder}, -->
+			upddt = getdate(),
+			updmemid = #{updmemid},
+			bd_kogluseyn = #{bdKogluseyn},
+			bd_kogltype1 = #{bdKogltype1},
+			bd_kogltype2 = #{bdKogltype2},
+			bd_notice_termyn = #{bdNoticeTermyn},
+			bd_notice_sdt = #{bdNoticeSdt},
+			bd_notice_edt = #{bdNoticeEdt},
+			bd_use_termyn = #{bdUseTermyn},
+			bd_use_sdt = #{bdUseSdt},
+			bd_use_edt = #{bdUseEdt},
+			bd_sch_sdt = #{bdSchSdt},
+			bd_sch_edt = #{bdSchEdt},
+			bd_thumb1 = #{bdThumb1},
+			bd_thumb2 = #{bdThumb2},
+			bd_thumb3 = #{bdThumb3},
+			bd_thumb1_alt = #{bdThumb1Alt},
+			bd_thumb2_alt = #{bdThumb2Alt},
+			bd_thumb3_alt = #{bdThumb3Alt},
+			bd_answer = #{bdAnswer},
+			bd_answer_writer = #{bdAnswerwriter},
+			group_code = #{groupCode},
+			file_id = #{fileId},
+			bd_movie = #{bdMovie},
+			bd_how_movie = #{howUpload},
+			bd_ext1 = #{bdExt1},
+			bd_ext2 = #{bdExt2},
+			bd_ext3 = #{bdExt3},
+			bd_ext4 = #{bdExt4},
+			bd_ext5 = #{bdExt5},
+			bd_ext6 = #{bdExt6},
+			bd_ext7 = #{bdExt7},
+			bd_ext8 = #{bdExt8},
+			bd_ext9 = #{bdExt9},
+			bd_ext10 = #{bdExt10},
+			bd_ext11 = #{bdExt11},
+			bd_ext12 = #{bdExt12}
+		WHERE delyn = 'N'
+		AND bd_idx = #{id}
+		AND bc_id = #{schBcid}
+	</update>
+
+	<update id="boardAutoDeleteProc" parameterType="egovframework.itgcms.core.boardconfig.service.MngrBoardconfigVO">
+		/* boardAutoDeleteProc */
+		UPDATE t_board SET
+			bc_id=#{bcId}
+			, delyn='Y'
+			, delmemid=#{delmemid}
+			, deldt = getdate()
+		WHERE bc_id = #{id}
+	</update>
+
+	<update id="boardChkAutoDeleteProc" parameterType="egovframework.itgcms.core.boardconfig.service.MngrBoardconfigVO">
+		/* boardChkAutoDeleteProc */
+		UPDATE t_board SET
+			bc_id   = (bc_id + replace(convert(varchar, getdate(), 102), '.', '') + replace(convert(varchar, getdate(), 108), ':', ''))
+			, delyn = 'Y'
+			, delmemid = #{delmemid}
+			, deldt = getdate()
+		WHERE bc_id IN
+		<foreach item="item" index="index" open="(" close=")" separator="," collection="chkId">
+			#{item}
+		</foreach>
+	</update>
+
+	<update id="boardDeleteProc" parameterType="itgMap">
+		/* boardDeleteProc */
+		UPDATE t_board SET
+			delyn = 'Y'
+			, delmemid = #{schRegmemid}
+			, deldt = getdate()
+		WHERE bd_idx = #{id} 
+		AND bc_id = #{schBcid}
+	</update>
+
+	<update id="boardChkDelProc" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO">
+		/* boardChkDelProc */
+		UPDATE t_board SET
+			delyn = 'Y'
+			, delmemid = #{schRegmemid}
+			, deldt = getdate()
+		WHERE bd_idx IN
+			<foreach item="item" index="index" open="(" close=")" separator="," collection="chkId">
+				#{item}
+			</foreach>
+		AND bc_id = #{schBcid}
+	</update>
+
+	<update id="boardChkDelProcJFile" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO">
+		/* boardChkDelProcJFile */
+		UPDATE j_attachfile SET
+			delete_yn = 'Y'
+		WHERE
+			file_id IN ( 
+				SELECT file_id FROM t_board 
+				WHERE bd_idx IN
+				<foreach item="item" index="index" open="(" close=")" separator="," collection="chkId">
+					#{item}
+				</foreach>
+				AND bc_id = #{schBcid}
+			)
+	</update>
+
+	<select id="boardListAjax" resultMap="board">
+		select
+			a.bd_idx
+			, a.bc_id
+			, a.bd_title
+			, a.bd_content
+		from t_board a
+		where a.delyn = 'N'
+		<if test="schStr != null and schStr != ''">
+			and (
+				a.bd_title like '%' + #{schStr} + '%'
+				or
+				a.bd_contentlike '%' + #{schStr} + '%'
+			)
+		</if>
+		order by a.regdt desc
+	</select>
+
+	<select id="boardMainList" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="itgMap">
+	/* boardMainList */
+	select * from (
+		select
+			ceiling(row_number() over (order by a.bd_reidx desc, a.bd_reorder desc) / cast(#{lastIndex} as float)) AS page,
+			a.bd_idx bdIdx,
+			a.bc_id bdId,
+			a.bd_code bdCode,
+			a.bd_writer bdWriter,
+			a.bd_title bdTitle,
+			a.bd_content bdContent,
+			a.bd_readnum bdReadnum,
+			a.bd_thumb1 bdThumb1,
+			a.bd_thumb2 bdThumb2,
+			a.bd_thumb3 bdThumb3,
+			a.bd_thumb1_alt bdThumb1Alt,
+			a.bd_thumb2_alt bdThumb2Alt,
+			a.bd_thumb3_alt bdThumb3Alt,
+			a.regdt,
+			a.regmemid,
+			a.file_id,
+			(select count(*) from j_attachfile where file_id = a.file_id and delete_yn='N') file_cnt,
+			b.c_name bdCodeName,
+			case when (bd_notice = 'Y' and bd_notice_termyn = 'Y' and bd_notice_sdt &lt; getdate() and bd_notice_edt &gt; getdate() )
+			or ( bd_notice = 'Y'  and ISNULL(bd_notice_termyn, 'N') = 'N')
+			then 1 ELSE 0 end noticeOrder
+		from t_board a
+		LEFT JOIN t_code b ON a.bd_code = b.c_code
+			where 1=1
+			and a.bc_id = #{schBcid}
+			and a.delyn = 'N'
+			and a.bd_useyn = 'Y'
+			and (
+				( a.bd_use_termyn = 'Y' and a.bd_use_sdt &lt; getdate() and a.bd_use_edt &gt; getdate())
+				or (ISNULL(a.bd_use_termyn, 'N') = 'N')
+			)
+	) tb
+	where
+		page = (cast(#{firstIndex} as float) / cast(#{lastIndex} as float)) + 1
+  </select>
+
+  	<select id="boardRegInfo" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="itgMap">
+  	/* select boardRegInfo */
+		select
+			a.bd_idx,
+			a.bc_id,
+			a.regmemid,
+			a.group_code,
+			a.ownId,
+			a.bd_secret,
+			a.bd_passwd
+		from ( select *,case when d.bd_relevel = '0' then d.regmemid else (select c.regmemid from t_board c where c.bd_idx = d.bd_reidx) end ownId from t_board d) a
+		where
+			a.delyn = 'N'
+			and a.bd_idx = #{id}
+			and a.bc_id = #{schBcid}
+	</select>
+
+	<select id="searchAll" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultMap="board">
+	/* searchAll >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		select
+			top ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(recordCountPerPage)}
+			a.bd_idx,
+			a.bc_id,
+			a.bd_code,
+			a.bd_writer,
+			a.bd_title,
+			a.bd_content,
+			a.bd_readnum,
+			a.bd_passwd,
+			a.bd_secret,
+			a.bd_notice,
+			a.bd_useyn,
+			a.bd_ip,
+			a.bd_phone,
+			a.bd_mobile,
+			a.bd_email,
+			a.bd_addr1,
+			a.bd_addr2,
+			a.bd_reidx,
+			a.bd_relevel,
+			a.bd_reorder,
+			a.regdt,
+			a.upddt,
+			a.deldt,
+			a.regmemid,
+			a.updmemid,
+			a.delmemid,
+			a.delyn,
+			a.bd_kogluseyn,
+			a.bd_kogltype1,
+			a.bd_kogltype2,
+			a.bd_notice_termyn,
+			a.bd_notice_sdt,
+			a.bd_notice_edt,
+			a.bd_use_termyn,
+			a.bd_use_sdt,
+			a.bd_use_edt,
+			a.bd_thumb1,
+			a.bd_thumb2,
+			a.bd_thumb3,
+			a.bd_thumb1_alt,
+			a.bd_thumb2_alt,
+			a.bd_thumb3_alt,
+			a.bd_answer,
+	   		a.bd_answer_writer,
+			a.group_code,
+			a.file_id,
+			#{schSite} as schSitecode
+		from
+		t_board a
+		where 1=1
+		and	(a.bd_title like '%' + #{schStr} + '%' or a.bd_content like '%' + #{schStr} + '%')
+		and a.bc_id = #{bcId}
+		and a.delyn = 'N'
+		order by a.bd_reidx desc , a.bd_reorder asc
+	</select>
+
+	<select id="searchAllCnt" parameterType="egovframework.itgcms.core.board.service.BoardSearchVO" resultType="String">
+	/* searchAllCnt >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+		select
+		count(*)
+		from
+		t_board
+		where 1=1
+		and	((bd_title like '%' + #{schStr} + '%') or
+		(bd_content like '%' + #{schStr} + '%'))
+		and bc_id = #{bcId}
+		and delyn = 'N'
+	</select>
+
+	<select id="boardListAll" parameterType="egovframework.itgcms.core.boardconfig.service.MngrBoardconfigVO" resultType="itgMap">
+  	/* select boardListAll */
+		select
+			a.bd_idx,
+			a.bc_id,
+			a.file_id
+		from t_board a
+		where a.bc_id = #{bcId}
+	</select>
+
+	<select id="chkBoardListAll" parameterType="egovframework.itgcms.core.boardconfig.service.MngrBoardconfigVO" resultType="itgMap">
+  	/* select boardListAll */
+		select
+			a.bd_idx,
+			a.bc_id,
+			a.file_id
+		from t_board a
+		where a.bc_id in
+			<foreach item="item" index="index" open="(" close=")" separator="," collection="chkId">
+				#{item}
+			</foreach>
+	</select>
+
+	<select id="rssBoardList" resultType="itgMap">
+	/** rssBoardList **/
+		SELECT
+			bd_idx,
+		    bd_writer,
+		    bd_title,
+		    regdt,
+		    regmemid
+		FROM t_board
+		WHERE
+			 bc_id = (select menu_subtype from t_menu where menu_code=#{menuCode})
+		ORDER BY bd_idx DESC
+	</select>
+
+	<select id="mngrBoardListForExcel" resultType="itgMap">
+	/* mngrBoardListForExcel */
+		SELECT
+		    bd_writer,
+		    bd_title,
+		    bd_content,
+		    bd_readnum,
+		    bd_ip,
+		    regdt,
+		    upddt,
+		    deldt,
+		    regmemid,
+		    updmemid,
+		    delmemid
+		FROM t_board
+		WHERE
+			delyn='N'
+		    and bc_id=#{menuCode}
+		ORDER BY bd_idx desc
+	</select>
+
+	<select id="boardPassCheck" resultMap="board">
+	/* boardPassCheck */
+		SELECT
+			bd_idx,
+		    bc_id,
+		    bd_code,
+		    bd_writer,
+		    bd_title,
+		    bd_content,
+		    bd_readnum,
+		    bd_passwd,
+		    bd_secret,
+		    bd_notice,
+		    bd_useyn,
+		    bd_ip,
+		    bd_phone,
+		    bd_mobile,
+		    bd_email,
+		    bd_addr1,
+		    bd_addr2,
+		    bd_reidx,
+		    bd_relevel,
+		    bd_reorder,
+		    bd_kogluseyn,
+		    bd_kogltype1,
+		    bd_kogltype2,
+		    regdt,
+		    upddt,
+		    deldt,
+		    regmemid,
+		    updmemid,
+		    delmemid,
+		    delyn,
+		    bd_notice_sdt,
+		    bd_notice_edt,
+		    bd_use_sdt,
+		    bd_use_edt,
+		    file_id,
+		    bd_use_termyn,
+		    bd_notice_termyn,
+		    group_code,
+		    bd_thumb1,
+		    bd_thumb2,
+		    bd_thumb3,
+		    bd_thumb1_alt,
+		    bd_thumb2_alt,
+		    bd_thumb3_alt,
+		    bd_answer,
+		    bd_answer_writer,
+		    bd_movie,
+		    bd_how_movie
+		FROM
+			t_board
+		WHERE
+			bd_idx = #{bdIndex}
+			AND
+			bd_passwd = #{pass}
+	</select>
+
+	<select id="mainContentsMenuCode" parameterType="egovMap" resultType="egovframework.itgcms.core.board.service.MainBoardVO">
+	/*** popupMainContentsMenuCode ***/
+		SELECT
+			m.menu_code AS anchorHref,
+			m.menu_name AS boardTitle,
+			m.menu_memo AS boardMemo,
+			bc.bc_skin AS boardSkin
+		FROM
+			t_menu m, t_board_config bc
+		WHERE m.delyn = 'N' AND bc.delyn = 'N'
+			AND bc.bc_id = m.menu_subtype
+			AND m.menu_code = #{menuCode}
+			AND m.menu_sitecode = #{siteCode}
+	</select>
+
+	<select id="latestBbsList" resultType="itgMap" >
+	/* latestBbsList */
+		SELECT
+ 		<if test="limitNum != null">
+	 		top ${@egovframework.itgcms.util.CommUtil@sqlInjetFilter(limitNum)}
+ 		</if>
+			b.bd_idx, b.bc_id, b.bd_code, b.bd_writer, b.bd_title, b.bd_content,
+			b.bd_readnum, b.bd_passwd, b.bd_secret, b.bd_notice, b.bd_useyn,
+			b.bd_ip, b.bd_phone, b.bd_mobile, b.bd_email, b.bd_addr1, b.bd_addr2,
+		    b.bd_reidx, b.bd_relevel, b.bd_reorder, b.bd_kogluseyn,
+		    b.bd_kogltype1, b.bd_kogltype2, b.regdt, b.upddt, b.deldt, b.regmemid,
+		    b.updmemid,b.delmemid, b.delyn, b.bd_notice_sdt, b.bd_notice_edt,
+		    b.bd_use_sdt,
+		    b.bd_use_edt, b.file_id, b.bd_use_termyn, b.bd_notice_termyn,b.group_code,
+		    b.bd_thumb1, b.bd_thumb2, b.bd_thumb3, b.bd_thumb1_alt,
+		    b.bd_thumb2_alt, b.bd_thumb3_alt, b.bd_answer, b.bd_answer_writer,
+		    b.bd_movie, b.bd_how_movie, m.menu_code as etc1, m.menu_name as etc2
+		 FROM t_board AS b, t_menu as m
+ 		WHERE b.delyn = 'N' and m.delyn = 'N'
+ 			AND b.bc_id = m.menu_subType
+		<if test="menuCode != null and root != null">
+ 			 AND b.bc_id = (select m.menu_subType from t_menu m where m.menu_code = #{menuCode} and m.menu_sitecode = #{root})
+ 			 AND m.menu_sitecode = #{root}
+ 		 </if>
+ 		  AND b.bd_relevel = 0
+ 		ORDER BY b.bd_notice desc, b.bd_idx desc
+	</select>
+
+	<select id="getReplyTotCnt" resultType="int">
+		select
+			count(cnt)
+		from
+		(select
+			<include refid="boardColums"/>
+			, (select count(bd_idx) from t_board i where i.bd_reidx = a.bd_reidx and bd_relevel > 0) as cnt
+		from  t_board a
+			LEFT JOIN t_code B ON a.bd_code = B.c_code
+		where
+			a.regmemid=#{schRegmemid}
+			<include refid="listWhere2"/>
+			<if test="siteCode != 'all' ">
+				and a.bc_id in(select menu_subtype from t_menu where menu_sitecode=#{siteCode})
+			</if>
+		 and bd_relevel = 0
+		) as c
+		where c.cnt > 0
+	</select>
+
+	<select id="getReplyList" resultType="itgMap">
+	/** getReplyList **/
+		select
+			bd_idx,
+		    bc_id,
+		    bd_writer,
+		    bd_title,
+			regdt,
+		    recent_dt,
+		    recent_name,
+		    cnt,
+		    menu_code
+		from
+		(select
+			a.bd_idx,
+		    a.bc_id,
+		    a.bd_writer,
+		    a.bd_title,
+			a.regdt,
+		    (select top 1 regdt from t_board i where i.bd_reidx = a.bd_reidx and bd_relevel > 0 order by bd_idx desc ) as recent_dt,
+		    (select top 1 bd_writer from t_board i where i.bd_reidx = a.bd_reidx and bd_relevel > 0 order by bd_idx desc) as recent_name,
+			(select count(bd_idx) from t_board i where i.bd_reidx = a.bd_reidx and bd_relevel > 0) as cnt,
+		    (select top 1 menu_code from t_menu where menu_subtype=bc_id) as menu_code
+		from  t_board a
+			LEFT JOIN t_code B ON a.bd_code = B.c_code
+		where
+			a.regmemid=#{schRegmemid}
+			<include refid="listWhere2"/>
+			<if test="siteCode != 'all' ">
+				and a.bc_id in(select menu_subtype from t_menu where menu_sitecode=#{siteCode})
+			</if>
+		 and bd_relevel = 0
+		) as c
+		where c.cnt > 0
+		order by recent_dt desc
+	</select>
+
+	<select id="getCommentTotCnt" resultType="int">
+		select
+			count(cnt)
+		from
+		(select
+			<include refid="boardColums"/>
+			,(select count(1) from t_comment i where i.delyn='N' and i.bd_idx =a.bd_idx) as cnt
+		from  t_board a
+			LEFT JOIN t_code B ON a.bd_code = B.c_code
+		where
+			a.regmemid=#{schRegmemid}
+			<include refid="listWhere2"/>
+			<if test="siteCode != 'all' ">
+				and a.bc_id in(select menu_subtype from t_menu where menu_sitecode=#{siteCode})
+			</if>
+		) as c
+		where c.cnt > 0
+	</select>
+
+	<select id="getCommentList" resultType="itgMap">
+	/** getCommentList **/
+
+		select
+			bd_idx,
+		    bc_id,
+		    bd_writer,
+		    bd_title,
+			regdt,
+		    recent_dt,
+		    recent_name,
+		    cnt,
+		    menu_code
+		from
+		(select
+			a.bd_idx,
+		    a.bc_id,
+		    a.bd_writer,
+		    a.bd_title,
+			a.regDt,
+		    (select top 1 regdt from t_comment i where i.delyn='N' and i.bd_idx =a.bd_idx order by c_idx desc) as recent_dt,
+		    (select top 1 c_writer from t_comment i where i.delyn='N' and i.bd_idx =a.bd_idx order by c_idx desc) as recent_name,
+			(select count(1) from t_comment i where i.delyn='N' and i.bd_idx =a.bd_idx) as cnt,
+		    (select top 1 menu_code from t_menu where menu_subtype=bc_id) as menu_code
+		from  t_board a
+			LEFT JOIN t_code B ON a.bd_code = B.c_code
+		where
+			a.regmemid=#{schRegmemid}
+			<include refid="listWhere2"/>
+			<if test="siteCode != 'all' ">
+				and a.bc_id in(select menu_subtype from t_menu where menu_sitecode=#{siteCode})
+			</if>
+		) as c
+		where c.cnt > 0
+		order by recent_dt desc
+	</select>
+
+</mapper>

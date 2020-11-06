@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.core.joinformconfig.service.impl.MngrJoinFormConfigMapper">
+
+	<resultMap id="joinFormConfigMap" type="egovframework.itgcms.core.joinformconfig.service.MngrJoinFormConfigSearchVO" />
+	
+	
+	<sql id="listWhere">
+		<if test="schStr != null and schStr != ''">
+	        <choose>
+	            <when test="schFld == '1'.toString()">
+					AND no = #{no}
+				</when>
+	            <when test="schFld == '2'.toString()">
+					AND title LIKE CONCAT('%' , #{schStr} , '%')
+				</when>
+			</choose>
+		</if>
+	</sql>
+	
+	<select id="mngrJoinFormConfigList" resultMap="joinFormConfigMap" parameterType="egovframework.itgcms.core.joinformconfig.service.MngrJoinFormConfigSearchVO" >
+		/* mngrJoinFormConfigList */
+		SELECT 
+		    no,
+		    name,
+		    nickname,
+		    passtrycnt,
+		    phone,
+		    mobile,
+		    email,
+		    fax,
+		    address,
+		    birth,
+		    sex,
+		    grp,
+		    regmemid,
+		    updmemid,
+		    regdt,
+		    upddt,
+		    contractDesc,
+		    sitecode,
+		    use_joinwait
+		FROM
+		    t_joinform
+		WHERE 1=1
+		<include refid="listWhere" />
+		ORDER BY no DESC
+		LIMIT #{recordCountPerPage} offset #{firstIndex}
+	</select>
+	
+	
+	<select id="mngrJoinFormConfigTotCnt" resultType="int" parameterType="egovframework.itgcms.core.joinformconfig.service.MngrJoinFormConfigSearchVO" >
+	/* mngrJoinFormConfigTotCnt */
+		SELECT 
+			COUNT(1) AS totCnt
+		FROM  t_joinform
+		WHERE 1=1
+		<include refid="listWhere" />
+	</select>
+	
+	<select id="mngrGetJoinFormBySiteCode" resultMap="joinFormConfigMap" parameterType="java.lang.String">
+	/* mngrGetJoinFormBySiteCode */
+		SELECT 
+			no,
+		    name,
+		    nickname,
+		    passtrycnt,
+		    phone,
+		    mobile,
+		    email,
+		    fax,
+		    address,
+		    birth,
+		    sex,
+		    grp,
+		    regmemid,
+		    updmemid,
+		    regdt,
+		    upddt,
+		    contractDesc,
+		    sitecode,
+		    use_joinwait
+	    FROM
+	    	 t_joinform
+	    WHERE
+	    	sitecode=#{siteCode}
+	    ORDER BY 
+	    	no DESC
+	    LIMIT 0,1
+	</select>
+	
+	
+	<insert id="mngrInsertJoinFormConfig"  parameterType="egovframework.itgcms.core.joinformconfig.service.MngrJoinFormConfigSearchVO" >
+	/* mngrInsertJoinFormConfig */
+		INSERT INTO t_joinform(
+			name,
+			nickname,
+			phone,
+			mobile,
+			email,
+			fax,
+			address,
+			birth,
+			sex,
+			grp,
+			regmemid,
+			regdt,
+			contractDesc,
+			sitecode,
+			use_joinwait
+		)
+		VALUES(
+			#{name},
+			#{nickName},
+			#{phone},
+			#{mobile},
+			#{email},
+			#{fax},
+			#{address},
+			#{birth},
+			#{sex},
+			#{grp},
+			#{regMemId},
+			NOW(),
+			#{contractDesc},
+			#{siteCode},
+			#{useJoinwait}
+		);
+				
+	</insert>
+	
+	
+	<update id="mngrModifyJoinFormConfig" parameterType="egovframework.itgcms.core.joinformconfig.service.MngrJoinFormConfigSearchVO">
+	/* mngrModifyJoinFormConfig */
+		UPDATE t_joinform
+			SET
+			name = #{name},
+			nickname = #{nickName},
+			phone = #{phone},
+			mobile = #{mobile},
+			email = #{email},
+			fax = #{fax},
+			address = #{address},
+			birth = #{birth},
+			sex = #{sex},
+			grp = #{grp},
+			updmemid = #{updMemId},
+			upddt = NOW(),
+			contractDesc = #{contractDesc},
+			sitecode = #{siteCode},
+			use_joinwait = #{useJoinwait}
+		WHERE no = #{no}
+	</update>
+	
+</mapper>

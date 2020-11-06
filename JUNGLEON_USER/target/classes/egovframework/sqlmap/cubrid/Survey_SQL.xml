@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.module.survey.service.impl.SurveyMapper">
+
+
+	<sql id="whereCondition">
+			delyn='N'
+			<choose>
+				<when test='schId != ""'>
+					AND sv_idx = #{schId}
+				</when>
+			</choose>
+	</sql>
+
+
+
+	<select id="getSurveyInfo" parameterType="defaultVO" resultType="egovframework.itgcms.module.survey.service.SurveyVO">
+		/***** getSurveyInfo *****/
+		SELECT
+			S.sv_idx, S.sv_title, S.sv_outline, S.sv_explain, S.sv_startdate, S.sv_enddate,
+			S.regmemid, S.updmemid, S.delmemid, S.regdt, S.upddt, S.deldt, S.delyn, S.etc1, S.etc2,
+			c.c_name as useyn
+			 <choose>
+			 	<when test='logMemid != ""'>
+					, (SELECT COUNT(1) FROM t_surveyanswer IA WHERE IA.sv_idx = S.sv_idx AND IA.sa_id=#{logMemid}) AS saNum
+			 	</when>
+			 	<otherwise>
+					, (
+						SELECT COUNT(1) FROM t_surveyanswer IA WHERE IA.sv_idx = S.sv_idx
+						<if test='etc1 != "" and etc2 != ""'>
+					    	AND
+					    		IA.sa_date BETWEEN TO_DATETIME(#{etc1}, 'yyyy-MM-dd HH24:MI') AND TO_DATETIME(#{etc2}, 'yyyy-MM-dd HH24:MI')
+					     </if>
+					   ) AS saNum
+			 	</otherwise>
+			 </choose>
+		FROM
+			t_survey S
+			 LEFT JOIN 	t_code c on S.useyn = c.c_code
+		WHERE
+			S.delyn='N'
+			<choose>
+				<when test='schId != ""'>
+					AND sv_idx = #{schId}
+				</when>
+			</choose>
+	</select>
+
+
+	<select id="getSurveyQuestions" parameterType="egovframework.itgcms.module.survey.service.SurveyVO"
+													resultType="egovframework.itgcms.module.survey.service.SurveyQuestionVO">
+		/***** getSurveyQuestions *****/
+		SELECT
+			sq_idx, sv_idx, sq_answertype, sq_question, regmemid, updmemid, delmemid, regdt, upddt, deldt,
+			sq_order,sq_checklimit,sq_textlimit, delyn, sq_required, etc1, etc2
+		FROM
+			t_surveyquestion
+		WHERE
+			delyn='N'
+			AND sv_idx = #{svIdx}
+		ORDER BY
+			sq_order ASC
+	</select>
+
+
+	<select id="getSurveyQuestionOptions" parameterType="egovframework.itgcms.module.survey.service.SurveyVO"
+															resultType="egovframework.itgcms.module.survey.service.SurveyQuestionOptionVO">
+		/***** getSurveyQuestionOptions *****/
+		SELECT
+			SO.so_idx, SO.sq_idx, SO.so_order, SO.so_value, SO.so_content,SO.so_inputyn, SO.etc1, SO.etc2
+		FROM
+			t_surveyoption SO,
+            (SELECT sq_idx FROM t_surveyquestion WHERE sv_idx = #{svIdx} ORDER BY sq_order ASC) SQ
+		WHERE
+			SO.sq_idx = SQ.sq_idx
+		ORDER BY
+			SO.sq_idx ASC, SO.so_order ASC
+	</select>
+
+
+
+	<select id="getSurveyValues" parameterType="egovframework.itgcms.module.survey.service.SurveyVO"
+															resultType="egovframework.itgcms.module.survey.service.SurveyValueVO">
+		/***** getSurveyValues *****/
+		SELECT
+			sa_idx, sq_idx, so_idx, so_value
+		FROM
+			t_surveyvalue
+		WHERE
+			sa_idx = (SELECT sa_idx FROM t_surveyanswer WHERE sv_idx=#{svIdx} AND sa_id=#{schMemid})
+
+	</select>
+
+
+
+	<insert id="insertSurveyAnswerInfo" parameterType="egovframework.itgcms.module.survey.service.SurveyAnswerVO">
+		/* insertSurveyAnswerInfo */
+		INSERT INTO t_surveyanswer	(
+			sa_idx,
+			sv_idx,
+			sa_date,
+			sa_id
+		)
+		VALUES(
+			t_surveyanswer_seq.nextval,
+			#{svIdx},
+			CURRENT_TIMESTAMP,
+			#{saId}
+		)
+		<selectKey resultType="int" keyProperty="saIdx" order="AFTER">
+			SELECT t_surveyanswer_seq.currval AS saIdx FROM DB_ROOT
+		</selectKey>
+	</insert>
+
+	<insert id="insertSurveyAnswerValue" parameterType="itgMap">
+		/***** insertSurveyAnswerValue *****/
+		INSERT
+			INTO
+			t_surveyvalue (sa_idx, sq_idx, so_idx, so_value)
+			VALUES
+		<foreach item="item" collection="answerList" separator=",">
+			(#{saIdx}, #{item.sqIdx}, #{item.soIdx}, #{item.soValue})
+		</foreach>
+		SELECT * FROM DB_ROOT
+	</insert>
+
+	<insert id="regSurveyValue" parameterType="itgMap">
+		/***** regSurveyValue *****/
+		INSERT INTO
+			t_surveyvalue
+			(sa_idx,	sq_idx,	so_idx,	so_value)
+		VALUES
+		<foreach collection="list" item="val" separator=",">
+			(#{saIdx}, #{val.sqIdx}, #{val.soIdx}, #{val.soValue})
+		</foreach>
+	</insert>
+
+
+
+
+</mapper>

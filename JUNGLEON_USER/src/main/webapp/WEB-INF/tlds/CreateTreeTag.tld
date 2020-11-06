@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/**
+ * @Class Name : custom.tld
+ * @Description : 커스텀 태그
+ *   수정일           수정자                   수정내용
+ *  ================================================
+ *  2014.02.14.       pi                  최초 생성
+ * @INCLUDE <%@ taglib prefix="ctt" uri="/WEB-INF/tlds/CreateTreeTag.tld"%>
+ * @USE : <ctt:getSysMenuTree tagOption="sys" menuList="${menuList}"/>
+ *
+ * tagOption : sys, mngr, user
+ */
+  -->
+<taglib xmlns="http://java.sun.com/xml/ns/javaee"
+    	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd"
+    	version="2.1">
+
+	<tlib-version>1.2</tlib-version>
+ 	<uri>mmt</uri>
+  	<tag>
+		<description>메뉴트리 태그만들기</description>
+		<name>getSysMenuTree</name>
+		<tag-class>egovframework.itgcms.util.CreateTreeTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>tagOption</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>menuList</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>

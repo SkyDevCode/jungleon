@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.itgcms.project.exceldown.service.impl.ExcelDownloadCustomMapper">
+
+	<select id="selectMngrBsnsPblancData"  resultType="itgMap">
+		/* mngrBoardListForExcel */
+			SELECT
+				bd_writer,
+				bd_title,
+				bd_content,
+				bd_content_text,
+				bd_htmlyn,
+				bd_readnum,
+				bd_ip,
+				regdt,
+				upddt,
+				deldt,
+				regmemid,
+				updmemid,
+				delmemid,
+				CASE
+			        	WHEN TO_CHAR(REC_SDT, 'YYYY-MM-DD') IS NULL OR TO_CHAR(REC_SDT, 'YYYY-MM-DD') = '' THEN 'empty'
+				        WHEN sysdate between TO_DATE(TO_CHAR (REC_SDT, 'YYYY-MM-DD') || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS') AND TO_DATE(TO_CHAR (REC_EDT, 'YYYY-MM-DD') || ' 23:00:00', 'YYYY-MM-DD HH24:MI:SS') THEN '진행'
+				        WHEN TO_CHAR(REC_SDT, 'YYYY-MM-DD') > TO_CHAR(SYSDATE, 'YYYY-MM-DD') THEN '대기'
+				        ELSE '마감'
+				    END AS rec_Stat,
+				TO_CHAR(REC_SDT, 'YYYY-MM-DD') rec_sdt,
+				TO_CHAR(REC_EDT, 'YYYY-MM-DD') rec_Edt,
+				charger
+			FROM t_board
+			WHERE delyn='N' AND bc_id=#{bbsBcId}
+			ORDER BY bd_idx DESC
+	</select>
+
+	<select id="selectMngrSpBussinessIngData"  resultType="itgMap">
+		/* selectMngrSpBussinessIngData */
+		SELECT
+				a.bd_title,
+				TO_CHAR(a.REC_SDT, 'YYYY-MM-DD') rec_sdt,
+				TO_CHAR(a.REC_EDT, 'YYYY-MM-DD') rec_Edt,
+			    a.charger,
+			    a.regdt,
+				a.bd_readnum,
+				B.c_name
+		FROM t_board a
+		LEFT OUTER JOIN t_code B ON a.bd_code = B.c_code
+			WHERE a.delyn='N' AND a.bc_id=#{bbsBcId}
+				 <![CDATA[
+					 AND a.rec_sdt < SYSDATE
+					 AND a.rec_edt > SYSDATE
+				]]>
+			ORDER BY a.bd_idx DESC
+	</select>
+
+	<select id="selectMngrSpBussinessEndData"  resultType="itgMap">
+		/* selectMngrSpBussinessEndData */
+		SELECT
+				a.bd_title,
+				TO_CHAR(a.REC_SDT, 'YYYY-MM-DD') rec_sdt,
+				TO_CHAR(a.REC_EDT, 'YYYY-MM-DD') rec_Edt,
+			    a.charger,
+			    a.regdt,
+				a.bd_readnum,
+				B.c_name
+		FROM t_board a
+		LEFT OUTER JOIN t_code B ON a.bd_code = B.c_code
+			WHERE a.delyn='N' AND a.bc_id=#{bbsBcId}
+				<![CDATA[
+					 AND a.rec_edt < SYSDATE
+				]]>
+			ORDER BY a.bd_idx DESC
+	</select>
+
+	<select id="selectMngrEmptyData"  resultType="itgMap">
+		/* selectMngrEmptyData */
+		SELECT
+				a.bd_title,
+			    a.charger,
+			    a.regdt,
+				a.bd_readnum,
+				B.c_name
+		FROM t_board a
+		LEFT OUTER JOIN t_code B ON a.bd_code = B.c_code
+			WHERE a.delyn='N' AND a.bc_id=#{bbsBcId}
+			ORDER BY a.bd_idx DESC
+	</select>
+
+	<select id="selectMngrMaPuNotiData"  resultType="itgMap">
+		/* selectMngrMaPuNotiData */
+		SELECT
+				a.bd_title,
+			    a.charger,
+			    a.regdt,
+				a.bd_readnum,
+				B.c_name
+		FROM t_board a
+		LEFT OUTER JOIN t_code B ON a.bd_code = B.c_code
+			WHERE a.delyn='N' AND a.bc_id=#{bbsBcId}
+			ORDER BY a.bd_idx DESC
+	</select>
+
+</mapper>
